@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 
 import numpy as np
@@ -78,6 +79,12 @@ class DatasetHandler():
                 window_id += 1
             except:
                 available = False
+
+        """ Alternative way
+        directory_path = os.fsencode(f"{settings.DIR_DATA}prepared/")
+        for file in os.listdir(directory_path):
+            filename = os.fsdecode(file)
+            data.append(pd.read_csv(filename))"""
 
         return data
 
