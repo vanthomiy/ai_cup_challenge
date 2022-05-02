@@ -85,13 +85,14 @@ dataset = DatasetHandler(settings.DIR_DATA + "/start/train.csv")
 data = dataset.load_features_data()
 #dataset.plot_data(data)
 
-setup = ModelSetup(60, Adjust.CUT)
-data1 = setup.adjust_dataset_time(data)
-#dataset.plot_data(data1)
-
 setup = ModelSetup(60 * 24, Adjust.AGGREGATE)
-data2 = setup.adjust_dataset_time(data)
-dataset.plot_data(data2)
+data1 = setup.adjust_dataset_time(data)
+dataset.plot_data(data1)
 
+split_data = setup.split_train_validation_test_data(data1)
+dataset_normed, train_normed = setup.create_norm_features_data_set(split_data)
+setup.train_model(dataset_normed)
+
+asd = 1
 #for setup in settings.setups:
 #    build_pipeline(setup, dataset.copy())
