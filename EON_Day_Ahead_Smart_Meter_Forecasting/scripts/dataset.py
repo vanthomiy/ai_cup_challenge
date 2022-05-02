@@ -2,6 +2,7 @@ from datetime import datetime
 
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 from sklearn.metrics import average_precision_score
 
 import settings
@@ -10,17 +11,16 @@ import settings
 class DatasetHandler():
     def __init__(self, path):
         self.path = path
-        self.train_df = pd.read_csv(path, index_col='pseudo_id')
-        self.time_based_df = self.time_based_dataset()
-        self.features_df = self.create_features()
 
-    def time_based_dataset(self):
+    def load_dataset_and_create_features(self):
         """
         We create a dictionary for each pseudo id
         In this dictionary there is a list of the datasets. For each 45-day window one list
         """
-        transponsed_df = self.train_df.T
 
+        train_df = pd.read_csv(self.path, index_col='pseudo_id')
+
+        transponsed_df = train_df.T
 
         # for each column (id) in the df
 
@@ -32,17 +32,13 @@ class DatasetHandler():
         for i in range(0, int(len(transponsed_df.index) / split_by)):
             list_of_dfs.append(transponsed_df.iloc[i * split_by:(i + 1) * split_by])
 
-        return list_of_dfs
-
-    def create_features(self):
-
         data = {}
 
         day = 24 * 60 * 60
         year = (365.2425) * day
         window_id = 0
 
-        for window in self.time_based_df:
+        for window in list_of_dfs:
             dict_list = []
             for index, row in window.iterrows():
                 date_time = datetime.strptime(index, '%Y-%m-%d %H:%M:%S')
@@ -63,3 +59,31 @@ class DatasetHandler():
             df.to_csv(settings.DIR_DATA + "prepared/" + str(window_id) + ".csv")
             window_id += 1
         return data
+
+    @staticmethod
+    def load_features_data():
+        """
+        We create a dictionary for each pseudo id
+        In this dictionary there is a list of the datasets. For each 45-day window one list
+        """
+
+        data = []
+
+        window_id = 0
+        available = True
+
+        while available:
+            try:
+                data.append(pd.read_csv(settings.DIR_DATA + "prepared/" + str(window_id) + ".csv"))
+                window_id += 1
+            except:
+                available = False
+
+        return data
+
+    @staticmethod
+    def plot_data(df):
+        plot_cols = ['datetime', 'day sin', 'year sin', settings.pseudo_ids[0], settings.pseudo_ids[1]]
+        plot_features = df[0][plot_cols]
+        _ = plot_features.plot(subplots=True)
+        plt.show()

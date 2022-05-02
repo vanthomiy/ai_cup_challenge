@@ -82,6 +82,8 @@ def display_data_pipeline(model, dataset):
 
 # Load the dataset
 dataset = DatasetHandler(settings.DIR_DATA + "/start/train.csv")
-
+data = dataset.load_features_data()
+dataset.plot_data(data)
+pass
 #for setup in settings.setups:
 #    build_pipeline(setup, dataset.copy())
