@@ -1,0 +1,10 @@
+Training models:
+	Some questions about the model training emerge due to the submission form, which requires a forecast based on the id of the dwelling groups.
+	Each group is based on the grographical approximity.
+	Based on this, is has to be considered, whether one model can provide accorate forcasts for every group or if there should be seperate a model for each group.
+
+	Another point to be considered is the fact, that the timespans for which data should be forecasted, are in the middle of the dataset.
+	So it isn't just a classical forecast but a "fill-the-gaps" task.
+
+Dataset:
+	
