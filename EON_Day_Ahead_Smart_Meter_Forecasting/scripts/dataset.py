@@ -1,6 +1,10 @@
+from datetime import datetime
+
 import numpy as np
 import pandas as pd
 from sklearn.metrics import average_precision_score
+
+import settings
 
 
 class DatasetHandler():
@@ -17,26 +21,18 @@ class DatasetHandler():
         """
         transponsed_df = self.train_df.T
 
-        data = {}
 
         # for each column (id) in the df
-        for column in transponsed_df:
-            data[column] = []
-            df_for_id = transponsed_df[[column]].copy()
-            df_for_id.rename(
-                columns={column: "value"}, inplace=True)
-            df_for_id["pseudo_id"] = [column] * len(df_for_id.index)
 
-            split_by = 38 * 24 * 2
+        split_by = 38 * 24 * 2
 
-            # loop through the data and split by any break between the timestamps
-            list_of_dfs = []
+        # loop through the data and split by any break between the timestamps
+        list_of_dfs = []
 
-            for i in range(0, int(len(df_for_id.index) / split_by)):
-                list_of_dfs.append(df_for_id.iloc[i * split_by:(i + 1) * split_by])
-            data[column] = (list_of_dfs)
+        for i in range(0, int(len(transponsed_df.index) / split_by)):
+            list_of_dfs.append(transponsed_df.iloc[i * split_by:(i + 1) * split_by])
 
-        return data
+        return list_of_dfs
 
     def create_features(self):
 
@@ -44,21 +40,26 @@ class DatasetHandler():
 
         day = 24 * 60 * 60
         year = (365.2425) * day
+        window_id = 0
 
-        for pseudo_id in self.time_based_df:
-            data[pseudo_id] = []
-            for window in self.time_based_df[pseudo_id]:
-                df = pd.DataFrame("value", "pseudo_id", "day sin", "day cos", "year sin", "year cos")
+        for window in self.time_based_df:
+            dict_list = []
+            for index, row in window.iterrows():
+                date_time = datetime.strptime(index, '%Y-%m-%d %H:%M:%S')
+                timestamp_s = int(round(date_time.timestamp()))
+                df = {"day sin": np.sin(timestamp_s * (2 * np.pi / day)),
+                      "day cos": np.cos(timestamp_s * (2 * np.pi / day)),
+                      'year sin': np.sin(timestamp_s * (2 * np.pi / year)),
+                      'year cos': np.cos(timestamp_s * (2 * np.pi / year)),
+                      'datetime': date_time}
 
-                for row, index in window.itterrows():
-                    timestamp_s = index.map(pd.Timestamp.timestamp)
+                for pseudo_id in settings.pseudo_ids:
+                    df[pseudo_id] = row[pseudo_id]
 
-                    df["value"] = row["value"]
-                    df["pseudo_id"] = row["pseudo_id"]
-                    df["day sin"] = np.sin(timestamp_s * (2 * np.pi / day))
-                    df["day cos"] = np.cos(timestamp_s * (2 * np.pi / day))
-                    df['year sin'] = np.sin(timestamp_s * (2 * np.pi / year))
-                    df['year cos'] = np.cos(timestamp_s * (2 * np.pi / year))
-                data[pseudo_id].append(df)
+                dict_list.append(df)
 
+            df = pd.DataFrame(dict_list)
+            data[window_id] = df
+            df.to_csv(settings.DIR_DATA + "prepared/" + str(window_id) + ".csv")
+            window_id += 1
         return data

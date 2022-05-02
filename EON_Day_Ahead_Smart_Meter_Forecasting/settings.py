@@ -1,4 +1,7 @@
 import os
+
+import pandas as pd
+
 from scripts.model_setup import ModelSetup, Adjust
 
 # region Paths
@@ -9,6 +12,7 @@ DIR_SCRIPTS = os.path.join(PROJECT_ROOT, 'scripts\\')
 
 # region Setups
 time_intervals = {"half_hourly": 30, "hourly": 60, "daily": 60 * 24}
+pseudo_ids = pd.read_csv(DIR_DATA + "start/counts.csv")["pseudo_id"].tolist()
 previous_data_intervals = [2, 3, 10]
 setups = {}
 
