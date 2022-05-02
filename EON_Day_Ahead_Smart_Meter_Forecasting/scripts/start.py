@@ -14,7 +14,7 @@ Steps:
 """
 import settings
 from scripts.dataset import DatasetHandler
-from scripts.model_setup import ModelSetup
+from scripts.model_setup import ModelSetup, Adjust
 
 
 def build_pipeline(model: ModelSetup, dataset):
@@ -83,7 +83,15 @@ def display_data_pipeline(model, dataset):
 # Load the dataset
 dataset = DatasetHandler(settings.DIR_DATA + "/start/train.csv")
 data = dataset.load_features_data()
-dataset.plot_data(data)
-pass
+#dataset.plot_data(data)
+
+setup = ModelSetup(60, Adjust.CUT)
+data1 = setup.adjust_dataset_time(data)
+#dataset.plot_data(data1)
+
+setup = ModelSetup(60 * 24, Adjust.AGGREGATE)
+data2 = setup.adjust_dataset_time(data)
+dataset.plot_data(data2)
+
 #for setup in settings.setups:
 #    build_pipeline(setup, dataset.copy())

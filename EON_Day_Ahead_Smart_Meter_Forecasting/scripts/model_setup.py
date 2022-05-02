@@ -1,19 +1,25 @@
+import warnings
 from enum import Enum
 
+import pandas as pd
+from pandas.core.common import SettingWithCopyWarning
+
+import settings
+
+warnings.simplefilter(action="ignore", category=SettingWithCopyWarning)
 
 class Adjust(Enum):
     CUT = 1
     """Take the values from the particular time"""
     AGGREGATE = 2
     """Sum up the values over the particular timespan"""
-    AVERAGE = 3
-    """Use the average values over the particular timespan"""
+
 
 
 class ModelSetup:
     def __init__(self,
                  dataset_time_interval=30,
-                 dataset_time_adjustment=Adjust.AVERAGE,
+                 dataset_time_adjustment=Adjust.CUT,
                  forecast_next_n_minutes=60,
                  previous_data_for_forecast=3,
                  test_training_split=0.75):
@@ -45,6 +51,24 @@ class ModelSetup:
         :param dataset_to_adjust: The actual dataset
         :return The dataset adjusted by the given parameters for the [ModelSetup]
         """
+        # 30 Min = 1, 60 Min = 2, etc.
+        time_factor = int(self.dataset_time_interval / 30)
+        df_list = []
+
+        for window in dataset_to_adjust:
+            window_copy = window.copy()
+            if self.dataset_time_adjustment == Adjust.CUT:
+                df_list.append(window_copy[window_copy.index % time_factor == 0])  # Selects every 3rd raw starting from 0
+            elif self.dataset_time_adjustment == Adjust.AGGREGATE:
+                for i in range(0, len(window_copy.index), time_factor):
+                    for pseudo_id in settings.pseudo_ids:
+                        values = window_copy[pseudo_id].values
+                        total = sum(values[i:i+time_factor])
+                        window_copy[pseudo_id][i] = total
+
+                df_list.append(window_copy[window_copy.index % time_factor == 0])  # Selects every 3rd raw starting from 0
+
+        return df_list
 
     def create_norm_features_data_set(self, dataset):
         """
