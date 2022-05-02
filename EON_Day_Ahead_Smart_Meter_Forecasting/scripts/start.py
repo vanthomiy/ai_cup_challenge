@@ -13,6 +13,7 @@ Steps:
 7. Store validation data for the model
 """
 import settings
+from scripts.dataset import DatasetHandler
 from scripts.model_setup import ModelSetup
 
 
@@ -76,10 +77,11 @@ def display_data_pipeline(model, dataset):
     # 2.
     model.display_dataset(adjusted_dataset)
 
+
 # Starting point
 
 # Load the dataset
-dataset = None
+dataset = DatasetHandler(settings.DIR_DATA + "/start/train.csv")
 
-for setup in settings.setups:
-    build_pipeline(setup, dataset.copy())
+#for setup in settings.setups:
+#    build_pipeline(setup, dataset.copy())
