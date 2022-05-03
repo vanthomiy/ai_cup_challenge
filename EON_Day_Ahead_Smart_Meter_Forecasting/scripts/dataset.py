@@ -24,6 +24,7 @@ class DatasetHandler():
         path = f"{settings.DIR_DATA}start/counts.csv"
         dwellings_count_df = pd.read_csv(path, index_col='pseudo_id')
 
+        # Divide every value in the dataset with the amount of dwellings for this data
         for index, _ in train_df.iterrows():
             factor = dwellings_count_df.loc[index]['n_dwellings']
             train_df.loc[index] = train_df.loc[index].div(factor)
