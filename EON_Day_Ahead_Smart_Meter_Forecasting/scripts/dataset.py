@@ -20,6 +20,12 @@ class DatasetHandler():
         """
 
         train_df = pd.read_csv(self.path, index_col='pseudo_id')
+        path = "../data/start/counts.csv"
+        dwellings_count_df = pd.read_csv(path, index_col='pseudo_id')
+
+        for index, _ in train_df.iterrows():
+            factor = dwellings_count_df.loc[index]['n_dwellings']
+            train_df.loc[index] = train_df.loc[index].div(factor)
 
         transponsed_df = train_df.T
 
