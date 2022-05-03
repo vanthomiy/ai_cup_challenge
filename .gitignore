@@ -129,3 +129,4 @@ dmypy.json
 .pyre/
 EON_Day_Ahead_Smart_Meter_Forecasting/.idea/
 EON_Day_Ahead_Smart_Meter_Forecasting/scripts/test_train_val_data_60_Adjust.CUT.pkl
+*.pkl

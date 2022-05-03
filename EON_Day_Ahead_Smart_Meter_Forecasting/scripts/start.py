@@ -31,7 +31,8 @@ data1 = setup.adjust_dataset_time(data)
 
 split_data = setup.split_train_validation_test_data(data1)
 # dataset_normed = setup.create_norm_features_data_set(split_data)
-setup.train_model(split_data, load_model=False)
+dataset_reordered = setup.do_murks(split_data)
+setup.train_model(dataset_reordered, load_model=False)
 
 asd = 1
 #for setup in settings.setups:

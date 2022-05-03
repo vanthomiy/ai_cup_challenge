@@ -104,6 +104,16 @@ class ModelSetup:
                           "e_" + str(self.max_epochs)
         self.dataset_name = f"{self.dataset_time_interval}_{self.dataset_time_adjustment}"
 
+    def do_murks(self, dataset):
+
+        dataset_normed = {}
+
+        for sets in ["train", "validation", "test"]:
+            dataset_normed[sets] = []
+            for data in dataset:
+                dataset_normed[sets].append(data[sets])
+        return dataset_normed
+
     def adjust_dataset_time(self, dataset_to_adjust):
         """
         Adjust the dataset by the setup parameters
