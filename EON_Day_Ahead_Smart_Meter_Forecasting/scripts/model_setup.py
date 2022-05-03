@@ -277,12 +277,19 @@ class ModelSetup:
 
         multi_lstm_model.save_weights(settings.DIR_MODEL + self.model_name + '.h5')
 
-    def combine_windows(self, windows):
+    def combine_windows(self, lst_windows: list[WindowGenerator]) -> (dict, dict, dict):
+        """
+        This function combines the test, train and validation datasets which are generated as an instance of the WindowGenerator.
+
+        :param lst_windows: A list which contains all WindowGenerator instances which were generated from the dataset.
+        :return: A tuple consisting of three dictionaries which contain information about the test, train and validation dataset.
+        """
+        
         test = {}
         train = {}
         val = {}
         first = True
-        for window in windows:
+        for window in lst_windows:
             if first:
                 first = False
                 test['x'] = window.test['x']
