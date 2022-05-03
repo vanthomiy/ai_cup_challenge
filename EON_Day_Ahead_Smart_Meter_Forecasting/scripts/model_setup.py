@@ -1,7 +1,8 @@
+import pickle
 import warnings
 from enum import Enum
 
-import IPython
+#import IPython
 import tensorflow as tf
 import numpy as np
 import pandas as pd
@@ -177,7 +178,7 @@ class ModelSetup:
 
         return list
 
-    def compile_and_fit(self, model, window, patience=2):
+    def compile_and_fit(self, model, train_data, patience=2):
         early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
                                                           patience=patience,
                                                           mode='min')
@@ -186,10 +187,10 @@ class ModelSetup:
                       optimizer=tf.optimizers.Adam(),
                       metrics=[tf.keras.metrics.MeanAbsolutePercentageError()])
 
-        train = window.train
+        #train = window.train
 
-        history = model.fit(x=window.train["x"],
-                            y=window.train["y"],
+        history = model.fit(x=train_data["x"],
+                            y=train_data["y"],
                             epochs=self.max_epochs,
                             validation_split=0.1,
                             callbacks=[early_stopping])
@@ -226,33 +227,81 @@ class ModelSetup:
                 tf.keras.layers.Reshape([self.n_ahead, self.num_features])
             ])"""
 
-        for pseudo_id in settings.pseudo_ids:
-            data_for_id = []
-            headers = [pseudo_id]
-            headers.extend(settings.features)
+        recalculate_data = True
 
-            for i in range(0, len(data["train"])):
-                data_dict = {}
-                for value in ["train", "validation", "test"]:
-                    copy_df = data[value][i][headers]
-                    copy_df.rename(columns={pseudo_id: 'value'}, inplace=True)
-                    # we use 0 to x for the pseudo ids...
-                    copy_df["pseudo_id"] = settings.pseudo_ids.index(pseudo_id)
-                    data_dict[value] = copy_df
-                data_for_id.append(data_dict)
+        if recalculate_data:
+            all_windows = []
+            for pseudo_id in settings.pseudo_ids:
+                data_for_id = []
+                headers = [pseudo_id]
+                headers.extend(settings.features)
 
-            for window_data_for_id in data_for_id:
-                multi_window = WindowGenerator(input_width=self.n_before,
-                                               label_width=self.n_ahead,
-                                               shift=self.n_ahead,
-                                               data=window_data_for_id)
+                for i in range(0, 3): #len(data["train"])):
+                    data_dict = {}
+                    for value in ["train", "validation", "test"]:
+                        copy_df = data[value][i][headers]
+                        copy_df.rename(columns={pseudo_id: 'value'}, inplace=True)
+                        # we use 0 to x for the pseudo ids...
+                        copy_df["pseudo_id"] = settings.pseudo_ids.index(pseudo_id)
+                        data_dict[value] = copy_df
+                    data_for_id.append(data_dict)
 
-                history = self.compile_and_fit(multi_lstm_model, multi_window)
+                for window_data_for_id in data_for_id:
+                    multi_window = WindowGenerator(input_width=self.n_before,
+                                                   label_width=self.n_ahead,
+                                                   shift=self.n_ahead,
+                                                   data=window_data_for_id)
 
-                multi_val_performance = multi_lstm_model.evaluate(multi_window.val["x"], multi_window.val["y"])
-                multi_performance = multi_lstm_model.evaluate(multi_window.test["x"], multi_window.test["y"], verbose=0)
+                    all_windows.append(multi_window)
+
+            test, train, val = self.combine_windows(all_windows)
+
+            with open('test_train_val.pkl', 'wb') as f:
+                pickle.dump((test, train, val), f)
+        else:
+            with open('test_train_val.pkl', 'rb') as f:
+                test, train, val = pickle.load(f)
+
+
+        history = self.compile_and_fit(multi_lstm_model, train)
+
+        # summarize history for loss
+        plt.plot(history.history['loss'])
+        plt.plot(history.history['val_loss'])
+        plt.title('model loss')
+        plt.ylabel('loss')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'test'], loc='upper left')
+        plt.show()
+
+        #multi_val_performance = multi_lstm_model.evaluate(multi_window.val["x"], multi_window.val["y"])
+        #multi_performance = multi_lstm_model.evaluate(multi_window.test["x"], multi_window.test["y"], verbose=0)
 
         multi_lstm_model.save_weights(settings.DIR_MODEL + self.model_name + '.h5')
+
+    def combine_windows(self, windows):
+        test = {}
+        train = {}
+        val = {}
+        first = True
+        for window in windows:
+            if first:
+                first = False
+                test['x'] = window.test['x']
+                train['x'] = window.train['x']
+                val['x'] = window.val['x']
+                test['y'] = window.test['y']
+                train['y'] = window.train['y']
+                val['y'] = window.val['y']
+            else:
+                test['x'] = np.vstack((test['x'], window.test['x']))
+                train['x'] = np.vstack((train['x'], window.train['x']))
+                val['x'] = np.vstack((val['x'], window.val['x']))
+                test['y'] = np.hstack((test['y'], window.test['y']))
+                train['y'] = np.hstack((train['y'], window.train['y']))
+                val['y'] = np.hstack((val['y'], window.val['y']))
+        return test, train, val
+
 
     def load_model(self):
         multi_lstm_model = tf.keras.Sequential([
