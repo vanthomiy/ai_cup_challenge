@@ -1,4 +1,5 @@
 import os
+import pickle
 from datetime import datetime
 
 import numpy as np
@@ -20,7 +21,7 @@ class DatasetHandler():
         """
 
         train_df = pd.read_csv(self.path, index_col='pseudo_id')
-        path = "../data/start/counts.csv"
+        path = f"{settings.DIR_DATA}start/counts.csv"
         dwellings_count_df = pd.read_csv(path, index_col='pseudo_id')
 
         for index, _ in train_df.iterrows():
@@ -33,17 +34,18 @@ class DatasetHandler():
 
         offset = 0
         amplitude = 2
+        normalization = {}
 
         if norm_max_min:
-            max_value = transponsed_df.to_numpy().max()
-            min_value = transponsed_df.to_numpy().min()
-            transponsed_df = (transponsed_df - min_value) / max_value
+            normalization["max"] = transponsed_df.to_numpy().max()
+            normalization["min"] = transponsed_df.to_numpy().min()
+            transponsed_df = (transponsed_df - normalization["min"]) / normalization["max"]
             offset = 0.5
             amplitude = 0.5
         else:
-            mean_value = transponsed_df.to_numpy().mean()
-            std_value = transponsed_df.to_numpy().std()
-            transponsed_df = (transponsed_df - std_value) / mean_value
+            normalization["mean"] = transponsed_df.to_numpy().mean()
+            normalization["std"] = transponsed_df.to_numpy().std()
+            transponsed_df = (transponsed_df - normalization["std"]) / normalization["mean"]
 
         # for each column (id) in the df
 
@@ -80,7 +82,16 @@ class DatasetHandler():
             data[window_id] = df
             df.to_csv(settings.DIR_DATA + "prepared/" + str(window_id) + ".csv")
             window_id += 1
+
+        with open(f'{settings.DIR_DATA}/normed_values.pkl', 'wb') as f:
+            pickle.dump(normalization, f)
+
         return data
+
+    @staticmethod
+    def load_normalization():
+        with open(f'{settings.DIR_DATA}/normed_values.pkl', 'rb') as f:
+            return pickle.load(f)
 
     @staticmethod
     def load_features_data():

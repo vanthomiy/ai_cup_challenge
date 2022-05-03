@@ -131,47 +131,6 @@ class ModelSetup:
 
         return df_list
 
-    def create_norm_features_data_set(self, dataset):
-        """
-        Adjust the dataset by the setup parameters
-        :param dataset: The actual dataset
-        :return The dataset adjusted by the given parameters for the [ModelSetup]
-        """
-        features = settings.features.copy()
-        features.extend(settings.pseudo_ids)
-        dataset_normed = {}
-
-        # we have 6 columns to detect. 5 are already given with min -1 and max 1
-        # and we have all values and id
-
-        for sets in ["train", "validation", "test"]:
-            dataset_normed[sets] = []
-            for i in range(0, len(dataset[sets])):
-                dataset_normed[sets][i] = dataset[sets][i][features]
-
-
-        all_train_data = []
-        for data in dataset:
-            all_train_data.append(data["train"])
-        df = pd.concat(all_train_data)
-
-        train_normed = {}
-
-        train_normed["max"] = df.max()
-        train_normed["min"] = df.min()
-        train_normed["mean"] = df.mean()
-        train_normed["std"] = df.std()
-
-        dataset_normed = {"train": [(data["train"] - train_normed["std"]) / train_normed["mean"] for data in dataset],
-                          "validation": [(data["validation"] - train_normed["std"]) / train_normed["mean"] for data in
-                                         dataset],
-                          "test": [(data["test"] - train_normed["std"]) / train_normed["mean"] for data in dataset]}
-
-
-
-
-        return dataset_normed, train_normed
-
     def split_train_validation_test_data(self, dataset_to_split):
         """
         Adjust the dataset by the setup parameters
@@ -229,7 +188,7 @@ class ModelSetup:
             #tf.keras.layers.Reshape([int(self.n_ahead), self.num_features])
         ])
 
-        recalculate_data = False
+        recalculate_data = True
 
         if recalculate_data:
             all_windows = []
@@ -238,7 +197,7 @@ class ModelSetup:
                 headers = [pseudo_id]
                 headers.extend(settings.features)
 
-                for i in range(0, 3):  # len(data["train"])):
+                for i in range(0, 3):  # len(data)):
                     data_dict = {}
                     for value in ["train", "validation", "test"]:
                         copy_df = data[value][i][headers]
@@ -258,10 +217,10 @@ class ModelSetup:
 
             test, train, val = self.combine_windows(all_windows)
 
-            with open(f'test_train_val_data_{self.dataset_name}.pkl', 'wb') as f:
+            with open(f'{settings.DIR_DATA}test_train_val_data_{self.dataset_name}.pkl', 'wb') as f:
                 pickle.dump((test, train, val), f)
         else:
-            with open(f'test_train_val_data_{self.dataset_name}.pkl', 'rb') as f:
+            with open(f'{settings.DIR_DATA}test_train_val_data_{self.dataset_name}.pkl', 'rb') as f:
                 test, train, val = pickle.load(f)
 
         history = self.compile_and_fit(multi_lstm_model, train)
