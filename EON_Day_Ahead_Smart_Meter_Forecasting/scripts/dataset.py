@@ -23,6 +23,22 @@ class DatasetHandler():
 
         transponsed_df = train_df.T
 
+        norm_max_min = True  # true is max min
+
+        offset = 0
+        amplitude = 2
+
+        if norm_max_min:
+            max_value = transponsed_df.to_numpy().max()
+            min_value = transponsed_df.to_numpy().min()
+            transponsed_df = (transponsed_df - min_value) / max_value
+            offset = 1
+            amplitude = 0.5
+        else:
+            mean_value = transponsed_df.to_numpy().mean()
+            std_value = transponsed_df.to_numpy().std()
+            transponsed_df = (transponsed_df - std_value) / mean_value
+
         # for each column (id) in the df
 
         split_by = 38 * 24 * 2
@@ -44,11 +60,10 @@ class DatasetHandler():
             for index, row in window.iterrows():
                 date_time = datetime.strptime(index, '%Y-%m-%d %H:%M:%S')
                 timestamp_s = int(round(date_time.timestamp()))
-                df = {"day sin": np.sin(timestamp_s * (2 * np.pi / day)),
-                      "day cos": np.cos(timestamp_s * (2 * np.pi / day)),
-                      'year sin': np.sin(timestamp_s * (2 * np.pi / year)),
-                      'year cos': np.cos(timestamp_s * (2 * np.pi / year)),
-                      'datetime': date_time}
+                df = {"day sin": np.sin(timestamp_s * (amplitude * np.pi / day)) + offset,
+                      "day cos": np.cos(timestamp_s * (amplitude * np.pi / day)) + offset,
+                      'year sin': np.sin(timestamp_s * (amplitude * np.pi / year)) + offset,
+                      'year cos': np.cos(timestamp_s * (amplitude * np.pi / year)) + offset}
 
                 for pseudo_id in settings.pseudo_ids:
                     df[pseudo_id] = row[pseudo_id]

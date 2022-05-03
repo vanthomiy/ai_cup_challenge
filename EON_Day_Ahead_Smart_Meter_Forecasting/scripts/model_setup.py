@@ -137,6 +137,19 @@ class ModelSetup:
         :param dataset: The actual dataset
         :return The dataset adjusted by the given parameters for the [ModelSetup]
         """
+        features = settings.features.copy()
+        features.extend(settings.pseudo_ids)
+        dataset_normed = {}
+
+        # we have 6 columns to detect. 5 are already given with min -1 and max 1
+        # and we have all values and id
+
+        for sets in ["train", "validation", "test"]:
+            dataset_normed[sets] = []
+            for i in range(0, len(dataset[sets])):
+                dataset_normed[sets][i] = dataset[sets][i][features]
+
+
         all_train_data = []
         for data in dataset:
             all_train_data.append(data["train"])
@@ -144,19 +157,18 @@ class ModelSetup:
 
         train_normed = {}
 
+        train_normed["max"] = df.max()
+        train_normed["min"] = df.min()
         train_normed["mean"] = df.mean()
         train_normed["std"] = df.std()
 
-        dataset_normed = {"train": [(data["train"] - train_normed["mean"]) / train_normed["std"] for data in dataset],
-                          "validation": [(data["validation"] - train_normed["mean"]) / train_normed["std"] for data in
+        dataset_normed = {"train": [(data["train"] - train_normed["std"]) / train_normed["mean"] for data in dataset],
+                          "validation": [(data["validation"] - train_normed["std"]) / train_normed["mean"] for data in
                                          dataset],
-                          "test": [(data["test"] - train_normed["mean"]) / train_normed["std"] for data in dataset]}
+                          "test": [(data["test"] - train_normed["std"]) / train_normed["mean"] for data in dataset]}
 
-        features = settings.features.copy()
-        features.extend(settings.pseudo_ids)
-        for sets in ["train", "validation", "test"]:
-            for i in range(0, len(dataset_normed[sets])):
-                dataset_normed[sets][i] = dataset_normed[sets][i][features]
+
+
 
         return dataset_normed, train_normed
 
