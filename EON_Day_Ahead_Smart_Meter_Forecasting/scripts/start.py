@@ -24,7 +24,7 @@ dataset = DatasetHandler(settings.DIR_DATA + "/start/train.csv")
 data = dataset.load_features_data()
 #dataset.plot_data(data)
 
-setup = ModelSetup(60, Adjust.CUT, previous_data_for_forecast=12)
+setup = ModelSetup(60, Adjust.CUT, previous_data_for_forecast=12, max_epochs=100)
 data1 = setup.adjust_dataset_time(data)
 #dataset.plot_data(data1)
 

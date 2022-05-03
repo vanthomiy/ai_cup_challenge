@@ -2,7 +2,7 @@ import pickle
 import warnings
 from enum import Enum
 
-#import IPython
+# import IPython
 import tensorflow as tf
 import numpy as np
 import pandas as pd
@@ -42,11 +42,11 @@ class WindowGenerator():
         for i in range(len(X) - self.input_width):
             v = X.iloc[i:(i + self.input_width)].values
             Xs.append(v)
-            ys.append(y.iloc[i + self.input_width])
+            ys.append(y.iloc[i + self.input_width + self.label_width-1])
         return {"x": np.array(Xs), "y": np.array(ys)}
 
     def make_dataset(self, data):
-        #y = data.pop("value")
+        # y = data.pop("value")
         y = data["value"]
         x = data
 
@@ -184,11 +184,15 @@ class ModelSetup:
                                                           patience=patience,
                                                           mode='min')
 
+        """model.compile(loss=tf.losses.MeanAbsolutePercentageError(),
+                      optimizer=tf.optimizers.Adam(),
+                      metrics=[tf.keras.metrics.MeanAbsolutePercentageError()])"""
+
         model.compile(loss=tf.losses.MeanSquaredError(),
                       optimizer=tf.optimizers.Adam(),
-                      metrics=[tf.keras.metrics.MeanAbsolutePercentageError()])
+                      metrics=[tf.metrics.MeanAbsoluteError()])
 
-        #train = window.train
+        # train = window.train
 
         history = model.fit(x=train_data["x"],
                             y=train_data["y"],
@@ -196,39 +200,24 @@ class ModelSetup:
                             validation_split=0.1,
                             callbacks=[early_stopping])
 
-        """history = model.fit(train_x, train_y, epochs=self.max_epochs,
-                            callbacks=[early_stopping])"""
 
         return history
 
     def train_model(self, data, load_model=False, save_model=True):
 
-        multi_lstm_model = tf.keras.Sequential()
-        multi_lstm_model.add(tf.keras.layers.LSTM(
-            units=128,
-            input_shape=(self.n_before, self.num_features)
-        ))
-        multi_lstm_model.add(tf.keras.layers.Dense(units=1))
-        multi_lstm_model.compile(
-            loss='mean_squared_error',
-            optimizer=tf.keras.optimizers.Adam(0.001)
-        )
+        multi_lstm_model = tf.keras.Sequential([
+            # Shape [batch, time, features] => [batch, lstm_units].
+            # Adding more `lstm_units` just overfits more quickly.
+            tf.keras.layers.LSTM(32,
+                                 return_sequences=False,
+                                 input_shape=(self.n_before, self.num_features)),
+            # Shape => [batch, out_steps*features].
+            tf.keras.layers.Dense(self.n_ahead * self.num_features,
+                                  kernel_initializer=tf.initializers.zeros())
+            #tf.keras.layers.Reshape([int(self.n_ahead), self.num_features])
+        ])
 
-        """if load_model:
-            multi_lstm_model = load_model
-        else:
-            multi_lstm_model = tf.keras.Sequential([
-                # Shape [batch, time, features] => [batch, lstm_units].
-                # Adding more `lstm_units` just overfits more quickly.
-                tf.keras.layers.LSTM(32, return_sequences=False),
-                # Shape => [batch, out_steps*features].
-                tf.keras.layers.Dense(self.n_ahead * self.num_features,
-                                      kernel_initializer=tf.initializers.zeros()),
-                # Shape => [batch, out_steps, features].
-                tf.keras.layers.Reshape([self.n_ahead, self.num_features])
-            ])"""
-
-        recalculate_data = True
+        recalculate_data = False
 
         if recalculate_data:
             all_windows = []
@@ -237,7 +226,7 @@ class ModelSetup:
                 headers = [pseudo_id]
                 headers.extend(settings.features)
 
-                for i in range(0, len(data["train"])):
+                for i in range(0, 3):  # len(data["train"])):
                     data_dict = {}
                     for value in ["train", "validation", "test"]:
                         copy_df = data[value][i][headers]
@@ -263,8 +252,16 @@ class ModelSetup:
             with open(f'test_train_val_data_{self.dataset_name}.pkl', 'rb') as f:
                 test, train, val = pickle.load(f)
 
-
         history = self.compile_and_fit(multi_lstm_model, train)
+
+        # summarize history for accuracy
+        plt.plot(history.history["mean_absolute_error"])
+        plt.plot(history.history["val_mean_absolute_error"])
+        plt.title('model accuracy')
+        plt.ylabel('accuracy')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'test'], loc='upper left')
+        plt.show()
 
         # summarize history for loss
         plt.plot(history.history['loss'])
@@ -275,8 +272,8 @@ class ModelSetup:
         plt.legend(['train', 'test'], loc='upper left')
         plt.show()
 
-        #multi_val_performance = multi_lstm_model.evaluate(multi_window.val["x"], multi_window.val["y"])
-        #multi_performance = multi_lstm_model.evaluate(multi_window.test["x"], multi_window.test["y"], verbose=0)
+        # multi_val_performance = multi_lstm_model.evaluate(multi_window.val["x"], multi_window.val["y"])
+        # multi_performance = multi_lstm_model.evaluate(multi_window.test["x"], multi_window.test["y"], verbose=0)
 
         multi_lstm_model.save_weights(settings.DIR_MODEL + self.model_name + '.h5')
 
@@ -302,7 +299,6 @@ class ModelSetup:
                 train['y'] = np.hstack((train['y'], window.train['y']))
                 val['y'] = np.hstack((val['y'], window.val['y']))
         return test, train, val
-
 
     def load_model(self):
         multi_lstm_model = tf.keras.Sequential([
