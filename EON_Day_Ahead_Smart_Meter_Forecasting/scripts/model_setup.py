@@ -2,7 +2,7 @@ import pickle
 import warnings
 from enum import Enum
 
-#import IPython
+# import IPython
 import tensorflow as tf
 import numpy as np
 import pandas as pd
@@ -46,7 +46,7 @@ class WindowGenerator():
         return {"x": np.array(Xs), "y": np.array(ys)}
 
     def make_dataset(self, data):
-        #y = data.pop("value")
+        # y = data.pop("value")
         y = data["value"]
         x = data
 
@@ -188,7 +188,7 @@ class ModelSetup:
                       optimizer=tf.optimizers.Adam(),
                       metrics=[tf.keras.metrics.MeanAbsolutePercentageError()])
 
-        #train = window.train
+        # train = window.train
 
         history = model.fit(x=train_data["x"],
                             y=train_data["y"],
@@ -263,7 +263,6 @@ class ModelSetup:
             with open(f'test_train_val_data_{self.dataset_name}.pkl', 'rb') as f:
                 test, train, val = pickle.load(f)
 
-
         history = self.compile_and_fit(multi_lstm_model, train)
 
         # summarize history for loss
@@ -275,17 +274,24 @@ class ModelSetup:
         plt.legend(['train', 'test'], loc='upper left')
         plt.show()
 
-        #multi_val_performance = multi_lstm_model.evaluate(multi_window.val["x"], multi_window.val["y"])
-        #multi_performance = multi_lstm_model.evaluate(multi_window.test["x"], multi_window.test["y"], verbose=0)
+        # multi_val_performance = multi_lstm_model.evaluate(multi_window.val["x"], multi_window.val["y"])
+        # multi_performance = multi_lstm_model.evaluate(multi_window.test["x"], multi_window.test["y"], verbose=0)
 
         multi_lstm_model.save_weights(settings.DIR_MODEL + self.model_name + '.h5')
 
-    def combine_windows(self, windows):
+    def combine_windows(self, lst_windows: list[WindowGenerator]) -> (dict, dict, dict):
+        """
+        This function combines the test, train and validation datasets which are generated as an instance of the WindowGenerator.
+
+        :param lst_windows: A list which contains all WindowGenerator instances which were generated from the dataset.
+        :return: A tuple consisting of three dictionaries which contain information about the test, train and validation dataset.
+        """
+        
         test = {}
         train = {}
         val = {}
         first = True
-        for window in windows:
+        for window in lst_windows:
             if first:
                 first = False
                 test['x'] = window.test['x']
@@ -302,7 +308,6 @@ class ModelSetup:
                 train['y'] = np.hstack((train['y'], window.train['y']))
                 val['y'] = np.hstack((val['y'], window.val['y']))
         return test, train, val
-
 
     def load_model(self):
         multi_lstm_model = tf.keras.Sequential([
