@@ -102,6 +102,7 @@ class ModelSetup:
                           "f_" + str(self.forecast_next_n_minutes) + \
                           "pd_" + str(self.previous_data_for_forecast) + \
                           "e_" + str(self.max_epochs)
+        self.dataset_name = f"{self.dataset_time_interval}_{self.dataset_time_adjustment}"
 
     def adjust_dataset_time(self, dataset_to_adjust):
         """
@@ -236,7 +237,7 @@ class ModelSetup:
                 headers = [pseudo_id]
                 headers.extend(settings.features)
 
-                for i in range(0, 3): #len(data["train"])):
+                for i in range(0, len(data["train"])):
                     data_dict = {}
                     for value in ["train", "validation", "test"]:
                         copy_df = data[value][i][headers]
@@ -256,10 +257,10 @@ class ModelSetup:
 
             test, train, val = self.combine_windows(all_windows)
 
-            with open('test_train_val.pkl', 'wb') as f:
+            with open(f'test_train_val_data_{self.dataset_name}.pkl', 'wb') as f:
                 pickle.dump((test, train, val), f)
         else:
-            with open('test_train_val.pkl', 'rb') as f:
+            with open(f'test_train_val_data_{self.dataset_name}.pkl', 'rb') as f:
                 test, train, val = pickle.load(f)
 
 
