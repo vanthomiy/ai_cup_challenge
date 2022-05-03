@@ -18,21 +18,26 @@ from scripts.model_setup import ModelSetup, Adjust
 
 
 # Starting point
+recalculate_data = False
 
-# Load the dataset
-dataset = DatasetHandler(settings.DIR_DATA + "/start/train.csv")
-# data = dataset.load_dataset_and_create_features()
-data = dataset.load_features_data()
-#dataset.plot_data(data)
+setup = ModelSetup(60, Adjust.CUT, previous_data_for_forecast=24, max_epochs=100)
 
-setup = ModelSetup(60, Adjust.CUT, previous_data_for_forecast=12, max_epochs=100)
-data1 = setup.adjust_dataset_time(data)
-#dataset.plot_data(data1)
+if recalculate_data:
+    # Load the dataset
+    dataset = DatasetHandler(settings.DIR_DATA + "/start/train.csv")
+    # data = dataset.load_dataset_and_create_features()
+    data = dataset.load_features_data()
+    #dataset.plot_data(data)
 
-split_data = setup.split_train_validation_test_data(data1)
-# dataset_normed = setup.create_norm_features_data_set(split_data)
-dataset_reordered = setup.do_murks(split_data)
-setup.train_model(dataset_reordered, load_model=False)
+    data1 = setup.adjust_dataset_time(data)
+    #dataset.plot_data(data1)
+
+    split_data = setup.split_train_validation_test_data(data1)
+    # dataset_normed = setup.create_norm_features_data_set(split_data)
+    dataset_reordered = setup.do_murks(split_data)
+    setup.train_model(dataset_reordered, load_model=False)
+else:
+    setup.train_model(load_model=False)
 
 asd = 1
 #for setup in settings.setups:

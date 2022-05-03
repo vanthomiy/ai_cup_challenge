@@ -42,7 +42,7 @@ class WindowGenerator():
         for i in range(len(X) - self.input_width):
             v = X.iloc[i:(i + self.input_width)].values
             Xs.append(v)
-            ys.append(y.iloc[i + self.input_width + self.label_width-1])
+            ys.append(y.iloc[i + self.input_width + self.label_width - 1])
         return {"x": np.array(Xs), "y": np.array(ys)}
 
     def make_dataset(self, data):
@@ -171,7 +171,7 @@ class ModelSetup:
 
         model.compile(loss=tf.losses.MeanSquaredError(),
                       optimizer=tf.optimizers.Adam(),
-                      metrics=[tf.metrics.MeanAbsoluteError()])
+                      metrics=[tf.metrics.MeanAbsolutePercentageError()])
 
         # train = window.train
 
@@ -181,10 +181,9 @@ class ModelSetup:
                             validation_split=0.1,
                             callbacks=[early_stopping])
 
-
         return history
 
-    def train_model(self, data, load_model=False, save_model=True):
+    def train_model(self, data=None, load_model=False, save_model=True):
 
         multi_lstm_model = tf.keras.Sequential([
             # Shape [batch, time, features] => [batch, lstm_units].
@@ -195,12 +194,10 @@ class ModelSetup:
             # Shape => [batch, out_steps*features].
             tf.keras.layers.Dense(self.n_ahead * self.num_features,
                                   kernel_initializer=tf.initializers.zeros())
-            #tf.keras.layers.Reshape([int(self.n_ahead), self.num_features])
+            # tf.keras.layers.Reshape([int(self.n_ahead), self.num_features])
         ])
 
-        recalculate_data = True
-
-        if recalculate_data:
+        if data is not None:
             all_windows = []
             for pseudo_id in settings.pseudo_ids:
                 data_for_id = []
@@ -236,13 +233,13 @@ class ModelSetup:
         history = self.compile_and_fit(multi_lstm_model, train)
 
         # summarize history for accuracy
-        plt.plot(history.history["mean_absolute_error"])
+        """plt.plot(history.history["mean_absolute_error"])
         plt.plot(history.history["val_mean_absolute_error"])
         plt.title('model accuracy')
         plt.ylabel('accuracy')
         plt.xlabel('epoch')
         plt.legend(['train', 'test'], loc='upper left')
-        plt.show()
+        plt.show()"""
 
         # summarize history for loss
         plt.plot(history.history['loss'])
@@ -265,7 +262,7 @@ class ModelSetup:
         :param lst_windows: A list which contains all WindowGenerator instances which were generated from the dataset.
         :return: A tuple consisting of three dictionaries which contain information about the test, train and validation dataset.
         """
-        
+
         test = {}
         train = {}
         val = {}
