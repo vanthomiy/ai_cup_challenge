@@ -1,10 +1,56 @@
 Training models:
 	Some questions about the model training emerge due to the submission form, which requires a forecast based on the id of the dwelling groups.
-	Each group is based on the grographical approximity.
-	Based on this, is has to be considered, whether one model can provide accorate forcasts for every group or if there should be seperate a model for each group.
+	Each group is based on the geographical approximity.
+	Based on this, is has to be considered, whether one model can provide accurate forecasts for every group or if there should be separate a model for each group.
 
 	Another point to be considered is the fact, that the timespans for which data should be forecasted, are in the middle of the dataset.
 	So it isn't just a classical forecast but a "fill-the-gaps" task.
 
 Dataset:
-	
+	Train.csv is loaded and then transposed. Each row represents a specific time and each column the consumption for each pseudo_id
+	We add 4 more columns which represents the day (sin/cos) and year (sin/cos)
+	Next we split the dataset at the missing timespans. It results in 20 datasets with each 38 days of data (stored in /preparation)
+
+Features:
+    We're creating datasets for each PSEUDO_ID and each DATASET
+    A new column is added that defines the actual PSEUDO_ID (index in the containing list)
+    The overall features are:
+        value, day sin, day cos, year sin, year cos, pseudo_id
+        Other possible features:
+            - values from the other pseudo_ids
+            - weather data
+            - count of the households in the pseudo_ids
+
+    We have 60? ids and 20 datasets, resulting in 1200 single fits.
+    For each of those fits we are creating a window for a single prediction.
+    A window containing x ( n data before) and y (the value to predict in the "future")
+    After creating the window for each fit we're merging the arrays together to get one array (x and y) for one single fit
+
+        Example:
+            Params: n = 7, m = 2
+            This is done for each fit:
+
+            Timeseries: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+            x1 =  [0, 1, 2, 3, 4, 5, 6]
+            y1 = 7
+            x2 =  [1, 2, 3, 4, 5, 6, 7]
+            y2 = 8
+            x3 =  [2, 3, 4, 5, 6, 7, 8]
+            y3 = 9
+
+            x = [0, 1, 2, 3, 4, 5, 6]
+                [1, 2, 3, 4, 5, 6, 7]
+                [2, 3, 4, 5, 6, 7, 8]
+
+            y = [7, 8, 9]
+
+            Now each fit is merged in one x and y array:
+
+            x = [0, 1, 2, 3, 4, 5, 6]
+                [1, 2, 3, 4, 5, 6, 7]
+                [2, 3, 4, 5, 6, 7, 8]
+                [0, 1, 2, 3, 4, 5, 6]
+                [1, 2, 3, 4, 5, 6, 7]
+                [2, 3, 4, 5, 6, 7, 8]
+
+             y = [7, 8, 9, 7, 8, 9]
