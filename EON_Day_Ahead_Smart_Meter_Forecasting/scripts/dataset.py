@@ -32,7 +32,7 @@ class DatasetHandler():
             max_value = transponsed_df.to_numpy().max()
             min_value = transponsed_df.to_numpy().min()
             transponsed_df = (transponsed_df - min_value) / max_value
-            offset = 1
+            offset = 0.5
             amplitude = 0.5
         else:
             mean_value = transponsed_df.to_numpy().mean()
@@ -60,10 +60,10 @@ class DatasetHandler():
             for index, row in window.iterrows():
                 date_time = datetime.strptime(index, '%Y-%m-%d %H:%M:%S')
                 timestamp_s = int(round(date_time.timestamp()))
-                df = {"day sin": np.sin(timestamp_s * (amplitude * np.pi / day)) + offset,
-                      "day cos": np.cos(timestamp_s * (amplitude * np.pi / day)) + offset,
-                      'year sin': np.sin(timestamp_s * (amplitude * np.pi / year)) + offset,
-                      'year cos': np.cos(timestamp_s * (amplitude * np.pi / year)) + offset}
+                df = {"day sin": amplitude * np.sin(timestamp_s * (np.pi / day)) + offset,
+                      "day cos": amplitude * np.cos(timestamp_s * (np.pi / day)) + offset,
+                      'year sin': amplitude * np.sin(timestamp_s * (np.pi / year)) + offset,
+                      'year cos': amplitude * np.cos(timestamp_s * (np.pi / year)) + offset}
 
                 for pseudo_id in settings.pseudo_ids:
                     df[pseudo_id] = row[pseudo_id]
