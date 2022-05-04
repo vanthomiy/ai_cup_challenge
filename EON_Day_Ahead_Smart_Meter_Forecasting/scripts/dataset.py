@@ -31,11 +31,13 @@ class DatasetHandler():
 
         transponsed_df = train_df.T
 
-        norm_max_min = True  # true is max min
-
         offset = 0
         amplitude = 2
         normalization = {}
+
+        norm_max_min = False  # true is max min
+
+
 
         if norm_max_min:
             normalization["max"] = transponsed_df.to_numpy().max()
