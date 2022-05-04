@@ -30,6 +30,9 @@ class ModelParameter:
         self.max_epochs = max_epochs
         self.patience = patience
 
+    def name(self):
+        return f"ml{self.loss}_mo{self.optimizer}_mm{self.metrics}_me{self.max_epochs}_mp{self.patience}_"
+
 
 class Setup:
     def __init__(self, normalization: Normalization, n_ahead: int, n_before: int, data_interval: Timespan,
@@ -46,3 +49,7 @@ class Setup:
         """What time intervall should be used for the data? In Minutes"""
         self.model_parameters = model_parameters
         """The model parameters from the model class"""
+
+    def name(self):
+        first = f"sn{self.normalization}_sa{self.n_ahead}_sb{self.n_before}_sw{self.window_size}_mi{self.data_interval}_"
+        return first + self.model_parameters.name()
