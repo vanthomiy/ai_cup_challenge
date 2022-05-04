@@ -1,7 +1,7 @@
 import os
 
 # region Paths
-from scripts.setup import ModelParameter
+from scripts.setup import ModelParameter, Setup, Normalization
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
 DIR_DATA = os.path.join(PROJECT_ROOT, 'data\\')
@@ -12,16 +12,14 @@ DIR_PREPROCESSING = f"{DIR_DATA}preprocessing"
 DIR_SLIDING_WINDOW = f"{DIR_DATA}sliding_window"
 DIR_VALIDATION = f"{DIR_DATA}validation"
 
-ALL_MODELS = {
-    "default": ModelParameter(),
-    "patience": ModelParameter(patience=1)
-}
 
 ALL_SETUPS = {
-
+    "default": Setup(),
+    "normalization_zero_to_one": Setup(normalization=Normalization.ZERO_TO_ONE)
 }
 
-ACTUAL_SETUP = []
+ACTUAL_KEY = "default"
+ACTUAL_SETUP = ALL_SETUPS[ACTUAL_KEY]
 
 # File path of the original 'train.csv' dataset which contains the kWh amounts per timespan and id
 FILE_TRAIN_DATA = os.path.join(PROJECT_ROOT, "data\\Start\\train.csv")
