@@ -254,17 +254,7 @@ class ModelSetup:
         # multi_performance = multi_lstm_model.evaluate(multi_window.test["x"], multi_window.test["y"], verbose=0)
 
         multi_lstm_model.save_weights(settings.DIR_MODEL + self.model_name + '.h5')
-
-        # Predict things
-        x_test = test["x"]
-        y_test = test["y"]
-        y_pred = multi_lstm_model.predict(x_test)
-        y_pred_t = np.transpose(y_pred)
-        col = y_pred_t[0]
-        plt.plot(y_test, label="y_test")
-        plt.show()
-        plt.plot(col, label="y_pred")
-        plt.show()
+        self.display_accuracy(train, multi_lstm_model)
 
     def combine_windows(self, lst_windows: list[WindowGenerator]) -> (dict, dict, dict):
         """
@@ -320,3 +310,29 @@ class ModelSetup:
 
     def display_dataset(self, dataset):
         pass
+
+    def display_accuracy(self, testset, model):
+        # Predict things
+        x_test = testset["x"]
+        y_test = testset["y"]
+
+        predict_input = None
+        first = True
+        for package in testset["x"]:
+            if first:
+                first = False
+                predict_input = package
+            else:
+                a = package[-1][:]
+                predict_input = np.vstack((predict_input, a))
+
+        x_startset = predict_input[:24, :]
+
+        y_pred = model.predict(x_test)
+        y_pred_t = np.transpose(y_pred)
+        col = y_pred_t[0]
+        plt.plot(y_test, label="y_test")
+        plt.show()
+        plt.plot(col, label="y_pred")
+        plt.show()
+        #pass

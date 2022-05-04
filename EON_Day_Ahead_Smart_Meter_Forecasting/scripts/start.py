@@ -18,7 +18,7 @@ from scripts.model_setup import ModelSetup, Adjust
 
 
 # Starting point
-recalculate_data = True
+recalculate_data = False
 
 setup = ModelSetup(60, Adjust.CUT, previous_data_for_forecast=24, max_epochs=100)
 
@@ -38,6 +38,7 @@ if recalculate_data:
     setup.train_model(dataset_reordered, load_model=False)
 else:
     setup.train_model(load_model=False)
+    setup.display_accuracy()
 
 asd = 1
 #for setup in settings.setups:
