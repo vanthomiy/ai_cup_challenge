@@ -22,7 +22,7 @@ val_dfs = []
 column_indices = None
 num_features = 6
 
-for time in range(0, 2):
+for time in range(0, 21):
     df = pd.read_csv(f"{settings.DIR_DATA}prepared\\{time}.csv")
     for pseudo_id in settings.pseudo_ids:
         features = [pseudo_id]
@@ -178,10 +178,10 @@ class WindowGenerator():
         return result
 
 
-MAX_EPOCHS = 2
+MAX_EPOCHS = 100
 OUT_STEPS = 12
 
-multi_window = WindowGenerator(input_width=12,
+multi_window = WindowGenerator(input_width=24,
                                label_width=OUT_STEPS,
                                shift=OUT_STEPS)
 
