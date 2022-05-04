@@ -43,6 +43,7 @@ class Setup:
                  normalization: Normalization = Normalization.MEAN,
                  n_ahead: int = 1,
                  n_before: int = 2,
+                 num_features=6,
                  data_interval: Timespan = Timespan.HOURLY):
         self.normalization = normalization
         """What normalization should be used? \"none\", \"mean\", \"01\""""
@@ -54,9 +55,11 @@ class Setup:
         """The size of the whole window"""
         self.data_interval = data_interval
         """What time intervall should be used for the data? In Minutes"""
-        self.model_parameters = ALL_MODELS[model_key]
+        self.model_parameters: ModelParameter = ALL_MODELS[model_key]
         """The model parameters from the model class"""
         self.model_key = model_key
+
+        self.num_features = num_features
 
         self.normalization_name = f"normierung_{str(self.normalization.name).lower()}_"
 

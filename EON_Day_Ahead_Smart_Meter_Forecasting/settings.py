@@ -41,6 +41,6 @@ FILE_NORMALIZATION_DATA = os.path.join(DIR_PREPROCESSING, f"{ACTUAL_SETUP.normal
 FILE_WINDOWED_DATA = os.path.join(DIR_SLIDING_WINDOW, f"{ACTUAL_SETUP.sliding_window_name}windowed_data.pkl")
 
 # Filepath to the model
-FILE_MODEL = os.path.join(DIR_MODEL, f"{ACTUAL_SETUP.model_name}model.h5")
+FILE_MODEL = os.path.join(DIR_MODEL, f"{ACTUAL_SETUP.model_name}model")
 
 
