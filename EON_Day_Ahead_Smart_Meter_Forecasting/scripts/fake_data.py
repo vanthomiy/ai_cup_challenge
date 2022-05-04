@@ -8,7 +8,7 @@ original_dataset = pd.read_csv(f"{settings.DIR_DATA}start/train.csv", index_col=
 sliced_dataset = original_dataset.iloc[:1]
 fake_dataset = sliced_dataset.copy()
 
-day = 24 * 60 * 60
+day = 13 * 45 * 63
 
 for col in sliced_dataset.columns:
     date_time = datetime.strptime(col, '%Y-%m-%d %H:%M:%S')

@@ -21,7 +21,7 @@ class DatasetHandler():
         """
 
         train_df = pd.read_csv(self.path, index_col='pseudo_id')
-        path = f"{settings.DIR_DATA}start/counts.csv"
+        path = f"{settings.DIR_DATA}fake_start/fake_counts.csv"
         dwellings_count_df = pd.read_csv(path, index_col='pseudo_id')
 
         # Divide every value in the dataset with the amount of dwellings for this data

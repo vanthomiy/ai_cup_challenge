@@ -73,7 +73,7 @@ class ModelSetup:
                  previous_data_for_forecast=3,
                  train_val_test=[0.7, 0.2, 0.1],
                  max_epochs=100,
-                 num_features=6):
+                 num_features=4):
         """
         The actual model setup Defines how the data is processed Defines how the prediction is done
         :param dataset_time_interval: Sets the interval of the data from the dataset by minutes
@@ -125,7 +125,7 @@ class ModelSetup:
         df_list = []
 
         for window in dataset_to_adjust:
-            window_copy = window.copy()
+            window_copy = dataset_to_adjust[window].copy()
             if self.dataset_time_adjustment == Adjust.CUT:
                 df_list.append(
                     window_copy[window_copy.index % time_factor == 0])  # Selects every 3rd raw starting from 0
@@ -204,7 +204,7 @@ class ModelSetup:
                 headers = [pseudo_id]
                 headers.extend(settings.features)
 
-                for i in range(0, 3):  # len(data)):
+                for i in range(0, len(data)):
                     data_dict = {}
                     for value in ["train", "validation", "test"]:
                         copy_df = data[value][i][headers]
@@ -254,6 +254,11 @@ class ModelSetup:
         # multi_performance = multi_lstm_model.evaluate(multi_window.test["x"], multi_window.test["y"], verbose=0)
 
         multi_lstm_model.save_weights(settings.DIR_MODEL + self.model_name + '.h5')
+
+        # Predict things
+        x_test = test["x"]
+        y_pred = multi_lstm_model.predict(x_test)
+        a = y_pred
 
     def combine_windows(self, lst_windows: list[WindowGenerator]) -> (dict, dict, dict):
         """
