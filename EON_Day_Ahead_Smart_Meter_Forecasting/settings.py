@@ -14,13 +14,17 @@ DIR_VALIDATION = f"{DIR_DATA}validation"
 
 ALL_MODELS = {
     "default": ModelParameter(),
-    "patience": ModelParameter(patience=5)
+    "patience": ModelParameter(patience=1)
 }
 
 ALL_SETUPS = {
 
 }
 
-ACTUAL_SETUP =
+ACTUAL_SETUP = []
 
+# File path of the original 'train.csv' dataset which contains the kWh amounts per timespan and id
+FILE_TRAIN_DATA = os.path.join(PROJECT_ROOT, "data\\Start\\train.csv")
 
+# File path of the original 'counts.csv' dataset which contains the amount of dwellings per id in the 'train.csv'
+FILE_COUNTS_DATA = os.path.join(PROJECT_ROOT, "data\\Start\\counts.csv")
