@@ -204,7 +204,7 @@ class ModelSetup:
                 headers = [pseudo_id]
                 headers.extend(settings.features)
 
-                for i in range(0, len(data)):
+                for i in range(0, len(data["train"])):
                     data_dict = {}
                     for value in ["train", "validation", "test"]:
                         copy_df = data[value][i][headers]
@@ -257,8 +257,14 @@ class ModelSetup:
 
         # Predict things
         x_test = test["x"]
+        y_test = test["y"]
         y_pred = multi_lstm_model.predict(x_test)
-        a = y_pred
+        y_pred_t = np.transpose(y_pred)
+        col = y_pred_t[0]
+        plt.plot(y_test, label="y_test")
+        plt.show()
+        plt.plot(col, label="y_pred")
+        plt.show()
 
     def combine_windows(self, lst_windows: list[WindowGenerator]) -> (dict, dict, dict):
         """
