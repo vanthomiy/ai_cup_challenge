@@ -39,7 +39,7 @@ ALL_MODELS = {
 
 class Setup:
     def __init__(self,
-                 model_parameters: ModelParameter = ALL_MODELS["default"],
+                 model_key="default",
                  normalization: Normalization = Normalization.MEAN,
                  n_ahead: int = 1,
                  n_before: int = 2,
@@ -54,8 +54,16 @@ class Setup:
         """The size of the whole window"""
         self.data_interval = data_interval
         """What time intervall should be used for the data? In Minutes"""
-        self.model_parameters = model_parameters
+        self.model_parameters = ALL_MODELS[model_key]
         """The model parameters from the model class"""
+        self.model_key = model_key
 
+        self.normalization_name = f"normierung_{str(self.normalization.name).lower()}_"
 
+        self.sliding_window_name = f"nahead_{str(self.n_ahead).lower()}_" \
+                                   f"nbefore_{str(self.n_before).lower()}_" \
+                                   f"datainterval_{str(self.data_interval).lower()}_"
 
+        self.model_name = f"nahead_{str(self.n_ahead).lower()}_" \
+                          f"nbefore_{str(self.n_before).lower()}_" \
+                          f"model_{self.model_key}_"
