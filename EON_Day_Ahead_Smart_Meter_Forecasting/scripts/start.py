@@ -24,7 +24,10 @@ setup = ModelSetup(60, Adjust.CUT, previous_data_for_forecast=24, max_epochs=100
 
 if recalculate_data:
     # Load the dataset
-    dataset = DatasetHandler(settings.DIR_DATA + "/start/train.csv")
+    dataset = DatasetHandler(
+        settings.DIR_DATA + "/start/train.csv",
+        settings.DIR_DATA + "/start/counts.csv"
+    )
     # data = dataset.load_dataset_and_create_features()
     data = dataset.load_features_data()
     #dataset.plot_data(data)

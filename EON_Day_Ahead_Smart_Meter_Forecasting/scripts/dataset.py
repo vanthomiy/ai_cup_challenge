@@ -10,9 +10,10 @@ from sklearn.metrics import average_precision_score
 import settings
 
 
-class DatasetHandler():
-    def __init__(self, path):
-        self.path = path
+class DatasetHandler:
+    def __init__(self, train_data_path, counts_data_path):
+        self.train_data_path = train_data_path
+        self.counts_data_path = counts_data_path
 
     def load_dataset_and_create_features(self):
         """
@@ -20,33 +21,34 @@ class DatasetHandler():
         In this dictionary there is a list of the datasets. For each 45-day window one list
         """
 
-        train_df = pd.read_csv(self.path, index_col='pseudo_id')
-        path = f"{settings.DIR_DATA}start/counts.csv"
-        dwellings_count_df = pd.read_csv(path, index_col='pseudo_id')
+        # Load data from the corresponding csv files
+        train_df = pd.read_csv(self.train_data_path, index_col='pseudo_id')
+        counts_df = pd.read_csv(self.counts_data_path, index_col='pseudo_id')
 
-        # Divide every value in the dataset with the amount of dwellings for this data
+        # Divide every value in the train_df dataset with the amount of dwellings for the value in order to get the
+        # average value for each cell
         for index, _ in train_df.iterrows():
-            factor = dwellings_count_df.loc[index]['n_dwellings']
+            factor = counts_df.loc[index]['n_dwellings']
             train_df.loc[index] = train_df.loc[index].div(factor)
 
-        transponsed_df = train_df.T
+        # Transpose the train_df in order to ToDo Why are we doing this?
+        train_transposed_df = train_df.T
 
         norm_max_min = True  # true is max min
-
         offset = 0
         amplitude = 2
         normalization = {}
 
         if norm_max_min:
-            normalization["max"] = transponsed_df.to_numpy().max()
-            normalization["min"] = transponsed_df.to_numpy().min()
-            transponsed_df = (transponsed_df - normalization["min"]) / normalization["max"]
+            normalization["max"] = train_transposed_df.to_numpy().max()
+            normalization["min"] = train_transposed_df.to_numpy().min()
+            train_transposed_df = (train_transposed_df - normalization["min"]) / normalization["max"]
             offset = 0.5
             amplitude = 0.5
         else:
-            normalization["mean"] = transponsed_df.to_numpy().mean()
-            normalization["std"] = transponsed_df.to_numpy().std()
-            transponsed_df = (transponsed_df - normalization["std"]) / normalization["mean"]
+            normalization["mean"] = train_transposed_df.to_numpy().mean()
+            normalization["std"] = train_transposed_df.to_numpy().std()
+            train_transposed_df = (train_transposed_df - normalization["std"]) / normalization["mean"]
 
         # for each column (id) in the df
 
@@ -55,8 +57,8 @@ class DatasetHandler():
         # loop through the data and split by any break between the timestamps
         list_of_dfs = []
 
-        for i in range(0, int(len(transponsed_df.index) / split_by)):
-            list_of_dfs.append(transponsed_df.iloc[i * split_by:(i + 1) * split_by])
+        for i in range(0, int(len(train_transposed_df.index) / split_by)):
+            list_of_dfs.append(train_transposed_df.iloc[i * split_by:(i + 1) * split_by])
 
         data = {}
 
