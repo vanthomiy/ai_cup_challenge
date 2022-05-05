@@ -33,7 +33,7 @@ def evaluate_model(mdl, dat, kys):
     return perf
 
 
-def update_evaluation_file(mdl, perf, kys):
+def update_evaluation_file(perf, kys):
     # Store values in the csv file
     df = pd.read_csv(settings.FILE_EVALUATION_DATA)
 
@@ -65,6 +65,46 @@ def update_evaluation_file(mdl, perf, kys):
     plt.savefig(settings.FILE_EVALUATION_OVERVIEW)
 
 
+def plot(data, model=None, plot_col='value', max_subplots=3):
+    total_window_size = settings.ACTUAL_SETUP.n_ahead + settings.ACTUAL_SETUP.n_before
+
+    input_slice = slice(0, settings.ACTUAL_SETUP.n_ahead)
+    input_indices = np.arange(total_window_size)[input_slice]
+
+    label_start = total_window_size - settings.ACTUAL_SETUP.n_ahead
+    labels_slice = slice(label_start, None)
+    label_indices = np.arange(total_window_size)[labels_slice]
+
+    inputs, labels = next(iter(data))
+    plt.figure(figsize=(12, 8))
+    plot_col_index = 0  # column_indices[plot_col]
+    max_n = min(max_subplots, len(inputs))
+    for n in range(max_n):
+        plt.subplot(max_n, 1, n + 1)
+        plt.ylabel(f'{plot_col} [normed]')
+        plt.plot(input_indices, inputs[n, :, plot_col_index],
+                 label='Inputs', marker='.', zorder=-10)
+
+        label_col_index = plot_col_index
+
+        if label_col_index is None:
+            continue
+
+        plt.scatter(label_indices, labels[n, :, label_col_index],
+                    edgecolors='k', label='Labels', c='#2ca02c', s=64)
+        if model is not None:
+            predictions = model(inputs)
+            plt.scatter(label_indices, predictions[n, :, label_col_index],
+                        marker='X', edgecolors='k', label='Predictions',
+                        c='#ff7f0e', s=64)
+
+        if n == 0:
+            plt.legend()
+
+    plt.xlabel('Time [h]')
+    plt.savefig(settings.FILE_EVALUATION_TIMESERIES)
+
+
 keys = ["val", "test"]
 
 # load the model
@@ -77,4 +117,7 @@ data = load_sliding_window()
 performance = evaluate_model(model, data, keys)
 
 # store the values in a file and also update the overall picture
-update_evaluation_file(model, performance, keys)
+update_evaluation_file(performance, keys)
+
+# create predictions and store them as pictures
+plot(data=data["test"], model=model)

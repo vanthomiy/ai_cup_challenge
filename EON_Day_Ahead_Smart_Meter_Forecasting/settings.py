@@ -41,9 +41,11 @@ def FILE_TIME_WINDOW_X(index: int):
 # Filepath to the normalized values
 FILE_NORMALIZATION_DATA = os.path.join(DIR_PREPROCESSING, f"{ACTUAL_SETUP.normalization_name}normalized_values.csv")
 
+
 # Filepath to the windowed data values
 def FILE_WINDOWED_DATA(index: str):
     return os.path.join(DIR_SLIDING_WINDOW, f"{ACTUAL_SETUP.sliding_window_name}windowed_data_{index}.pkl")
+
 
 # Filepath to the model
 FILE_MODEL = os.path.join(DIR_MODEL, f"{ACTUAL_SETUP.model_name}model")
@@ -54,6 +56,6 @@ FILE_EVALUATION_DATA = os.path.join(DIR_VALIDATION, f"evaluation.csv")
 
 FILE_EVALUATION_OVERVIEW = os.path.join(DIR_VALIDATION, f"evaluation.png")
 
+FILE_EVALUATION_TIMESERIES = os.path.join(DIR_VALIDATION, f"timeseries.png")
+
 PSEUDO_IDS = pd.read_csv(FILE_TRAIN_DATA)["pseudo_id"].tolist()[:ACTUAL_SETUP.pseudo_id_to_use]
-
-

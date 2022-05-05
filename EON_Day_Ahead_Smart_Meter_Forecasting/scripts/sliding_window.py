@@ -25,9 +25,9 @@ def load_time_window_data():
 
             # df is list of all values
             n = len(df_id)
-            train_dfs.append(df_id[0:int(n * 0.7)])
-            val_dfs.append(df_id[int(n * 0.7):int(n * 0.9)])
-            test_dfs.append(df_id[int(n * 0.9):])
+            train_dfs.append(df_id[0:int(n * 0.6)])
+            val_dfs.append(df_id[int(n * 0.6):int(n * 0.8)])
+            test_dfs.append(df_id[int(n * 0.8):])
 
     return {"train": train_dfs, "test": test_dfs, "val": val_dfs}
 
