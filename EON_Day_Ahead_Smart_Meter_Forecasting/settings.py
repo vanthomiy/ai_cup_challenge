@@ -17,11 +17,11 @@ DIR_VALIDATION = os.path.join(DIR_DATA, 'validation\\')
 
 TEST_TRAIN_VALID = ["train", "test", "val"]
 
-SETUP_KEY = "default"
+SETUP_KEY = "fast_lane"
 
 ALL_SETUPS = {
     "default": Setup(),
-    "fast_lane": Setup(pseudo_id_to_use=1, time_windows_to_use=1),
+    "fast_lane": Setup(pseudo_id_to_use=1, time_windows_to_use=1, model_key="fast_lane"),
     "normalization_zero_to_one": Setup(normalization=Normalization.ZERO_TO_ONE)
 }
 

@@ -42,6 +42,7 @@ class ModelParameter:
 
 ALL_MODELS = {
     "default": ModelParameter(),
+    "fast_lane": ModelParameter(max_epochs=2),
     "patience": ModelParameter(patience=5)
 }
 
@@ -51,7 +52,7 @@ class Setup:
                  model_key="default",
                  normalization: Normalization = Normalization.MEAN,
                  n_ahead: int = 1,
-                 n_before: int = 2,
+                 n_before: int = 1,
                  time_windows_to_use=21,
                  pseudo_id_to_use=60,
                  features=["day sin", "day cos", "year sin", "year cos"],
