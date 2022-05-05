@@ -105,7 +105,7 @@ def plot(data, model=None, plot_col='value', max_subplots=3):
         if n == 0:
             plt.legend()
 
-    plt.xlabel('Time [h]')
+    plt.xlabel(f"Time steps: {settings.ACTUAL_SETUP.data_interval}")
     plt.savefig(settings.FILE_EVALUATION_TIMESERIES)
 
 
