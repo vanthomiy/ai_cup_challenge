@@ -56,6 +56,6 @@ FILE_EVALUATION_DATA = os.path.join(DIR_VALIDATION, f"evaluation.csv")
 
 FILE_EVALUATION_OVERVIEW = os.path.join(DIR_VALIDATION, f"evaluation.png")
 
-FILE_EVALUATION_TIMESERIES = os.path.join(DIR_VALIDATION, f"timeseries.png")
+FILE_EVALUATION_TIMESERIES = os.path.join(DIR_VALIDATION, f"{ACTUAL_SETUP.sliding_window_name}timeseries.png")
 
 PSEUDO_IDS = pd.read_csv(FILE_TRAIN_DATA)["pseudo_id"].tolist()[:ACTUAL_SETUP.pseudo_id_to_use]

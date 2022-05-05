@@ -39,10 +39,16 @@ def update_evaluation_file(perf, kys):
 
     if settings.ACTUAL_SETUP.model_name in df["setup"].unique():
         index = df.loc[df['setup'] == settings.ACTUAL_SETUP.model_name].index[0]
-        df.at[index, 'val'] = perf[kys[0]]
-        df.at[index, 'val_loss'] = perf[kys[1]]
+        df.at[index, 'val'] = perf[kys[0]][0]
+        df.at[index, 'val_loss'] = perf[kys[0]][1]
+        df.at[index, 'test'] = perf[kys[1]][0]
+        df.at[index, 'test_loss'] = perf[kys[1]][1]
     else:
-        df.loc[len(df.index)] = [settings.ACTUAL_SETUP.model_name, perf[kys[0]], perf[kys[1]]]
+        df.loc[len(df.index)] = [settings.ACTUAL_SETUP.model_name,
+                                 perf[kys[0]][0],
+                                 perf[kys[0]][1],
+                                 perf[kys[1]][0],
+                                 perf[kys[1]][1]]
 
     df.to_csv(settings.FILE_EVALUATION_DATA, index=False)
 
@@ -52,14 +58,12 @@ def update_evaluation_file(perf, kys):
     width = 0.3
 
     metric_index = 1
-
-    val_mae = [v[metric_index] for v in df["val"]]
-    test_mae = [v[metric_index] for v in df["val_loss"]]
+    val_mae = df["val"].tolist()
+    test_mae = df["test"].tolist()
 
     plt.bar(x - 0.17, val_mae, width, label='Validation')
     plt.bar(x + 0.17, test_mae, width, label='Test')
-    plt.xticks(ticks=x, labels=df["setup"],
-               rotation=45)
+    plt.xticks(ticks=x, labels=df["setup"].tolist(), rotation=45)
     plt.ylabel(f'MAE (average over all times and outputs)')
     _ = plt.legend()
     plt.savefig(settings.FILE_EVALUATION_OVERVIEW)
