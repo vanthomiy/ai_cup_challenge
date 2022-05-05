@@ -2,6 +2,13 @@ from enum import Enum
 import tensorflow as tf
 
 
+class Algorithm(Enum):
+    LINEAR = 1
+    DENSE = 2
+    CONV = 3
+    LSTM = 4
+
+
 class Normalization(Enum):
     NONE = 1
     """No normalization"""
@@ -23,12 +30,14 @@ class ModelParameter:
                  optimizer=tf.optimizers.Adam(),
                  metrics=[tf.metrics.MeanAbsolutePercentageError()],
                  max_epochs: int = 100,
-                 patience: int = -1):
+                 patience: int = -1,
+                 algorithm: Algorithm = Algorithm.LSTM):
         self.loss = loss
         self.optimizer = optimizer
         self.metrics = metrics
         self.max_epochs = max_epochs
         self.patience = patience
+        self.algorithm = algorithm
 
 
 ALL_MODELS = {
@@ -43,6 +52,9 @@ class Setup:
                  normalization: Normalization = Normalization.MEAN,
                  n_ahead: int = 1,
                  n_before: int = 2,
+                 time_windows_to_use=21,
+                 pseudo_id_to_use=60,
+                 features=["day sin", "day cos", "year sin", "year cos"],
                  num_features=6,
                  data_interval: Timespan = Timespan.HOURLY):
         self.normalization = normalization
@@ -58,15 +70,21 @@ class Setup:
         self.model_parameters: ModelParameter = ALL_MODELS[model_key]
         """The model parameters from the model class"""
         self.model_key = model_key
-
+        """The actual columns / features for the model"""
+        self.features = features
+        """The name of the features"""
         self.num_features = num_features
-
+        """The count of the features"""
+        self.time_windows_to_use = time_windows_to_use
+        """How much of the 21 data windows should be used"""
+        self.pseudo_id_to_use = pseudo_id_to_use
+        """How much of the households should be used (value between 1 and 60)"""
         self.normalization_name = f"normierung_{str(self.normalization.name).lower()}_"
 
-        self.sliding_window_name = f"nahead_{str(self.n_ahead).lower()}_" \
+        self.sliding_window_name = f"{self.normalization_name}_" \
+                                   f"nahead_{str(self.n_ahead).lower()}_" \
                                    f"nbefore_{str(self.n_before).lower()}_" \
                                    f"datainterval_{str(self.data_interval).lower()}_"
 
-        self.model_name = f"nahead_{str(self.n_ahead).lower()}_" \
-                          f"nbefore_{str(self.n_before).lower()}_" \
+        self.model_name = f"{self.sliding_window_name}_" \
                           f"model_{self.model_key}_"

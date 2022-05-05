@@ -89,7 +89,7 @@ def plot_history(hist):
     plt.ylabel('loss')
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
-    plt.show()
+    plt.savefig(settings.FILE_MODEL_TRAIN) #save as png
 
 
 # load the pickle file with the windowed data

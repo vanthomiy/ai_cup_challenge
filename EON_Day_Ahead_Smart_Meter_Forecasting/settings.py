@@ -1,6 +1,8 @@
 import os
 
 # region Paths
+import pandas as pd
+
 from scripts.setup import ModelParameter, Setup, Normalization
 
 PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
@@ -13,10 +15,13 @@ DIR_PREPROCESSING = os.path.join(DIR_DATA, 'preprocessing\\')
 DIR_SLIDING_WINDOW = os.path.join(DIR_DATA, 'sliding_window\\')
 DIR_VALIDATION = os.path.join(DIR_DATA, 'validation\\')
 
+TEST_TRAIN_VALID = ["train", "test", "val"]
+
 SETUP_KEY = "default"
 
 ALL_SETUPS = {
     "default": Setup(),
+    "fast_lane": Setup(pseudo_id_to_use=1, time_windows_to_use=1),
     "normalization_zero_to_one": Setup(normalization=Normalization.ZERO_TO_ONE)
 }
 
@@ -42,5 +47,9 @@ FILE_WINDOWED_DATA = os.path.join(DIR_SLIDING_WINDOW, f"{ACTUAL_SETUP.sliding_wi
 
 # Filepath to the model
 FILE_MODEL = os.path.join(DIR_MODEL, f"{ACTUAL_SETUP.model_name}model")
+
+FILE_MODEL_TRAIN = os.path.join(DIR_MODEL, f"{ACTUAL_SETUP.model_name}train.png")
+
+PSEUDO_IDS = pd.read_csv(FILE_TRAIN_DATA)["pseudo_id"].tolist()[:ACTUAL_SETUP.pseudo_id_to_use]
 
 
