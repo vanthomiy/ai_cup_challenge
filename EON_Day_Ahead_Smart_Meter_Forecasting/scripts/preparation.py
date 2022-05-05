@@ -3,7 +3,7 @@ from datetime import datetime
 import numpy as np
 import settings
 import pandas as pd
-from scripts.setup import Normalization
+from scripts.setup import Normalization, Timespan
 
 
 def load_data() -> (pd.DataFrame, pd.DataFrame):
@@ -168,9 +168,9 @@ def create_and_save_data_windows(lst_split_dataset: list, _amplitude: int, _offs
             timestamp_s = int(round(date_time.timestamp()))
             # Create a dictionary which contains the daily and annual sin and cos values for the current timestamp
             dict_timestamp_data = {"day sin": _amplitude * np.sin(timestamp_s * (np.pi / seconds_per_day)) + _offset,
-                  "day cos": _amplitude * np.cos(timestamp_s * (np.pi / seconds_per_day)) + _offset,
-                  'year sin': _amplitude * np.sin(timestamp_s * (np.pi / seconds_per_year)) + _offset,
-                  'year cos': _amplitude * np.cos(timestamp_s * (np.pi / seconds_per_year)) + _offset}
+                                   "day cos": _amplitude * np.cos(timestamp_s * (np.pi / seconds_per_day)) + _offset,
+                                   'year sin': _amplitude * np.sin(timestamp_s * (np.pi / seconds_per_year)) + _offset,
+                                   'year cos': _amplitude * np.cos(timestamp_s * (np.pi / seconds_per_year)) + _offset}
 
             # Add the existing data for the current row and every id to the temporary data dictionary
             for pseudo_id in settings.PSEUDO_IDS:
@@ -198,6 +198,22 @@ test_clean_train_dataset(train=train_df, cleaned=train_df_cleaned)
 # Transpose the dataset for the next steps
 train_df_cleaned_transposed = train_df_cleaned.T
 
+# Adjust the time intervall of the data [half-hourly, hourly and daily]
+interval = settings.ACTUAL_SETUP.data_interval.value
+train_df_cleaned_transposed_interval = None
+if settings.ACTUAL_SETUP.data_interval == Timespan.DAILY:
+    # Just cut the data
+    train_df_cleaned_transposed_interval = train_df_cleaned_transposed.iloc[::interval, :]
+else:
+    # Sum up the data for the timespan
+    # Maybe there is a faster way to do this
+    train_df_cleaned_transposed_interval = pd.DataFrame(train_df_cleaned_transposed.columns.tolist())
+    for index in range(0, len(train_df_cleaned_transposed.index), interval):
+        train_df_cleaned_transposed_interval.append(
+            train_df_cleaned_transposed.iloc[index:index + interval].sum(),ignore_index=True)
+
+# TODO("if interval is daily we have to sum the values up")
+
 # Introduce necessary variables and predefine them as None
 amplitude = None
 offset = None
@@ -208,11 +224,11 @@ normalization = None
 if settings.ACTUAL_SETUP.normalization == Normalization.NONE:
     train_df_normalized = normalize_data_NONE()
 elif settings.ACTUAL_SETUP.normalization == Normalization.MEAN:
-    train_df_normalized, normalization = normalize_data_MEAN(train_transposed=train_df_cleaned_transposed)
+    train_df_normalized, normalization = normalize_data_MEAN(train_transposed=train_df_cleaned_transposed_interval)
     amplitude = 2
     offset = 0
 elif settings.ACTUAL_SETUP.normalization == Normalization.ZERO_TO_ONE:
-    train_df_normalized, normalization = normalize_data_ZERO_TO_ONE(train_transposed=train_df_cleaned_transposed)
+    train_df_normalized, normalization = normalize_data_ZERO_TO_ONE(train_transposed=train_df_cleaned_transposed_interval)
     amplitude = 0.5
     offset = 0.5
 

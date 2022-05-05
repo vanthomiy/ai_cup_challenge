@@ -19,9 +19,9 @@ class Normalization(Enum):
 
 
 class Timespan(Enum):
-    HALF_HOURLY = 30
-    HOURLY = 60
-    DAILY = 24 * 60
+    HALF_HOURLY = 1
+    HOURLY = 2
+    DAILY = 48
 
 
 class ModelParameter:
