@@ -12,12 +12,16 @@ def load_model():
     return tf.keras.models.load_model(settings.FILE_MODEL)
 
 
-def load_data():
-    windowed_data = {}
-    with open(settings.FILE_WINDOWED_DATA, 'rb') as f:
-        windowed_data = pickle.load(f)
+def load_sliding_window():
+    # load the pickle file with the windowed data
+    mv_ds = {}
 
-    return windowed_data
+    for value in settings.TEST_TRAIN_VALID:
+        ds = tf.data.experimental.load(
+            settings.FILE_WINDOWED_DATA(value))
+        mv_ds[value] = ds
+
+    return mv_ds
 
 
 def evaluate_model(mdl, dat, kys):
@@ -65,7 +69,7 @@ keys = ["val", "test"]
 model = load_model()
 
 # load the data
-data = load_data()
+data = load_sliding_window()
 
 # evaluate the model
 performance = evaluate_model(model, data, keys)

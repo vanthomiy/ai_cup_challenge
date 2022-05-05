@@ -32,15 +32,15 @@ def load_time_window_data():
     return {"train": train_dfs, "test": test_dfs, "val": val_dfs}
 
 
-def split_window():
+def split_window(features):
     total_window_size = settings.ACTUAL_SETUP.n_before + settings.ACTUAL_SETUP.n_ahead
     input_slice = slice(0, settings.ACTUAL_SETUP.n_before)
 
     label_start = total_window_size - settings.ACTUAL_SETUP.n_ahead
     labels_slice = slice(label_start, None)
 
-    inputs = settings.ACTUAL_SETUP.num_features[:, input_slice, :]
-    labels = settings.ACTUAL_SETUP.num_features[:, labels_slice, :]
+    inputs = features[:, input_slice, :]
+    labels = features[:, labels_slice, :]
 
     # Slicing doesn't preserve static shape information, so set the shapes
     # manually. This way the `tf.data.Datasets` are easier to inspect.
@@ -69,7 +69,8 @@ def make_dataset(data_list):
             ds = ds_temp
         else:
             ds = ds.concatenate(ds_temp)
-    # to see all lists of data
+
+    # We need to create a list out of it to store it with pkl
     # result = ds.unbatch()
     # res1 = list(result)
 
@@ -84,8 +85,11 @@ windowed_data = {}
 
 # create windowed data for train test and validation
 for value in settings.TEST_TRAIN_VALID:
-    windowed_data[value] = make_dataset(data_dict[value])
+    data = make_dataset(data_dict[value])
 
-# save dict as .pkl
+    tf.data.experimental.save(
+        data, settings.FILE_WINDOWED_DATA(value))
+
+"""
 with open(settings.FILE_WINDOWED_DATA, 'wb') as f:
-    pickle.dump(windowed_data, f)
+    pickle.dump(windowed_data["train"], f)"""

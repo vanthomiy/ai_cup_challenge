@@ -10,7 +10,7 @@ DIR_DATA = os.path.join(PROJECT_ROOT, 'data\\')
 DIR_MODEL = os.path.join(PROJECT_ROOT, 'model\\')
 DIR_SCRIPTS = os.path.join(PROJECT_ROOT, 'scripts\\')
 
-DIR_START = os.path.join(DIR_DATA, 'Start\\')
+DIR_START = os.path.join(DIR_DATA, 'start\\')
 DIR_PREPROCESSING = os.path.join(DIR_DATA, 'preprocessing\\')
 DIR_SLIDING_WINDOW = os.path.join(DIR_DATA, 'sliding_window\\')
 DIR_VALIDATION = os.path.join(DIR_DATA, 'validation\\')
@@ -21,8 +21,7 @@ SETUP_KEY = "fast_lane"
 
 ALL_SETUPS = {
     "default": Setup(),
-    "fast_lane": Setup(pseudo_id_to_use=1, time_windows_to_use=1, model_key="fast_lane"),
-    "normalization_zero_to_one": Setup(normalization=Normalization.ZERO_TO_ONE)
+    "fast_lane": Setup(pseudo_id_to_use=1, time_windows_to_use=1, model_key="fast_lane")
 }
 
 ACTUAL_SETUP = ALL_SETUPS[SETUP_KEY]
@@ -43,7 +42,8 @@ def FILE_TIME_WINDOW_X(index: int):
 FILE_NORMALIZATION_DATA = os.path.join(DIR_PREPROCESSING, f"{ACTUAL_SETUP.normalization_name}normalized_values.csv")
 
 # Filepath to the windowed data values
-FILE_WINDOWED_DATA = os.path.join(DIR_SLIDING_WINDOW, f"{ACTUAL_SETUP.sliding_window_name}windowed_data.pkl")
+def FILE_WINDOWED_DATA(index: str):
+    return os.path.join(DIR_SLIDING_WINDOW, f"{ACTUAL_SETUP.sliding_window_name}windowed_data_{index}.pkl")
 
 # Filepath to the model
 FILE_MODEL = os.path.join(DIR_MODEL, f"{ACTUAL_SETUP.model_name}model")

@@ -7,6 +7,18 @@ import settings
 from scripts.setup import ModelParameter, Algorithm
 
 
+def load_sliding_window():
+    # load the pickle file with the windowed data
+    mv_ds = {}
+
+    for value in settings.TEST_TRAIN_VALID:
+        ds = tf.data.experimental.load(
+            settings.FILE_WINDOWED_DATA(value))
+        mv_ds[value] = ds
+
+    return mv_ds
+
+
 def create_model(param):
     act_model = None
 
@@ -71,8 +83,8 @@ def compile_and_fit(model, window, params: ModelParameter):
                   optimizer=params.optimizer,
                   metrics=params.metrics)
 
-    history = model.fit(window.train, epochs=params.max_epochs,
-                        validation_data=window.val,
+    history = model.fit(window["train"], epochs=params.max_epochs,
+                        validation_data=window["val"],
                         callbacks=[early_stopping])
     return history
 
@@ -89,16 +101,13 @@ def plot_history(hist):
     plt.ylabel('loss')
     plt.xlabel('epoch')
     plt.legend(['train', 'test'], loc='upper left')
-    plt.savefig(settings.FILE_MODEL_TRAIN) #save as png
+    plt.savefig(settings.FILE_MODEL_TRAIN)  # save as png
 
 
-# load the pickle file with the windowed data
-with open(settings.FILE_WINDOWED_DATA, 'rb') as f:
-    multi_window = pickle.load(f)
+# load the multi window
+multi_window = load_sliding_window()
 
-if multi_window is None:
-    print("No multi_window was found")
-
+# pre load the model settings
 params = settings.ACTUAL_SETUP.model_parameters
 
 # create the model
