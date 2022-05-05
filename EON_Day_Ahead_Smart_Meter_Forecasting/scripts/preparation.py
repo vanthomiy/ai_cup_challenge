@@ -1,3 +1,8 @@
+import pickle
+from datetime import datetime
+
+import numpy as np
+
 import settings
 import pandas as pd
 
@@ -68,25 +73,25 @@ def normalize_data_MEAN(train_transposed: pd.DataFrame):
     df = train_transposed.copy()
     _amplitude = 2
     _offset = 0
-    normalization = {
+    _normalization = {
         "mean": df.to_numpy().mean(),
         "std": df.to_numpy().std()
     }
-    df = (df - normalization["std"]) / normalization["mean"]
-    return df, _amplitude, _offset
+    df = (df - _normalization["std"]) / _normalization["mean"]
+    return df, _amplitude, _offset, _normalization
 
 
 def normalize_data_ZERO_TO_ONE(train_transposed: pd.DataFrame):
     df = train_transposed.copy()
     _amplitude = 0.5
     _offset = 0.5
-    normalization = {
+    _normalization = {
         "max": df.to_numpy().max(),
         "min": df.to_numpy().min()
     }
 
-    df = (df - normalization["min"]) / normalization["max"]
-    return df, _amplitude, _offset
+    df = (df - _normalization["min"]) / _normalization["max"]
+    return df, _amplitude, _offset, _normalization
 
 
 # Load the data from the csv files
@@ -102,8 +107,43 @@ train_df_cleaned_transposed = train_df_cleaned.T
 if settings.ACTUAL_SETUP.normalization == Normalization.NONE:
     train_df_normalized = normalize_data_NONE()
 elif settings.ACTUAL_SETUP.normalization == Normalization.MEAN:
-    train_df_normalized, amplitude, offset = normalize_data_MEAN(train_df_cleaned_transposed)
+    train_df_normalized, amplitude, offset, normalization = normalize_data_MEAN(train_df_cleaned_transposed)
 elif settings.ACTUAL_SETUP.normalization == Normalization.ZERO_TO_ONE:
-    train_df_normalized, amplitude, offset = normalize_data_ZERO_TO_ONE(train_df_cleaned_transposed)
+    train_df_normalized, amplitude, offset, normalization = normalize_data_ZERO_TO_ONE(train_df_cleaned_transposed)
+
+# Loop through data and split at breaks in the timeline
+split_by = 38*24*2
+list_of_dfs = []
+for i in range(0, int(len(train_df_normalized.index) / split_by)):
+    list_of_dfs.append(train_df_normalized.iloc[i * split_by: (i + 1) * split_by])
+
+# Create windows
+data = {}
+day = 24 * 60 * 60
+year = 365.2425 * day
+window_id = 0
+
+for window in list_of_dfs:
+    dict_list = []
+    for index, row in window.iterrows():
+        date_time = datetime.strptime(index, '%Y-%m-%d %H:%M:%S')
+        timestamp_s = int(round(date_time.timestamp()))
+        df = {"day sin": amplitude * np.sin(timestamp_s * (np.pi / day)) + offset,
+              "day cos": amplitude * np.cos(timestamp_s * (np.pi / day)) + offset,
+              'year sin': amplitude * np.sin(timestamp_s * (np.pi / year)) + offset,
+              'year cos': amplitude * np.cos(timestamp_s * (np.pi / year)) + offset}
+
+        for pseudo_id in settings.PSEUDO_IDS:
+            df[pseudo_id] = row[pseudo_id]
+
+        dict_list.append(df)
+
+    df = pd.DataFrame(dict_list)
+    data[window_id] = df
+    df.to_csv(settings.FILE_TIME_WINDOW_X(window_id))
+    window_id += 1
+
+with open(settings.FILE_NORMALIZATION_DATA, 'wb') as f:
+    pickle.dump(normalization, f)
 
 print("hi")
