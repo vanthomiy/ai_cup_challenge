@@ -50,6 +50,10 @@ FILE_MODEL = os.path.join(DIR_MODEL, f"{ACTUAL_SETUP.model_name}model")
 
 FILE_MODEL_TRAIN = os.path.join(DIR_MODEL, f"{ACTUAL_SETUP.model_name}train.png")
 
+FILE_EVALUATION_DATA = os.path.join(DIR_VALIDATION, f"evaluation.csv")
+
+FILE_EVALUATION_OVERVIEW = os.path.join(DIR_VALIDATION, f"evaluation.png")
+
 PSEUDO_IDS = pd.read_csv(FILE_TRAIN_DATA)["pseudo_id"].tolist()[:ACTUAL_SETUP.pseudo_id_to_use]
 
 
