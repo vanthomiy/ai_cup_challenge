@@ -131,3 +131,10 @@ dmypy.json
 .pyre/
 *.iml
 *.xml
+*.csv
+*.pb
+*.png
+*.snapshot
+*.metadata
+*.csv
+*.csv
