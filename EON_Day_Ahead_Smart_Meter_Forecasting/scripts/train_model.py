@@ -4,20 +4,62 @@ import tensorflow as tf
 from matplotlib import pyplot as plt
 
 import settings
-from scripts.setup import ModelParameter
+from scripts.setup import ModelParameter, Algorithm
 
 
-def create_model():
-    return tf.keras.Sequential([
-        # Shape [batch, time, features] => [batch, lstm_units].
-        # Adding more `lstm_units` just overfits more quickly.
-        tf.keras.layers.LSTM(32, return_sequences=False),
-        # Shape => [batch, out_steps*features].
-        tf.keras.layers.Dense(settings.ACTUAL_SETUP.n_ahead * settings.ACTUAL_SETUP.num_features,
-                              kernel_initializer=tf.initializers.zeros()),
-        # Shape => [batch, out_steps, features].
-        tf.keras.layers.Reshape([settings.ACTUAL_SETUP.n_ahead, settings.ACTUAL_SETUP.num_features])
-    ])
+def create_model(param):
+    act_model = None
+
+    if param.algorithm == Algorithm.LINEAR:
+        act_model = tf.keras.Sequential([
+            # Take the last time-step.
+            # Shape [batch, time, features] => [batch, 1, features]
+            tf.keras.layers.Lambda(lambda x: x[:, -1:, :]),
+            # Shape => [batch, 1, out_steps*features]
+            tf.keras.layers.Dense(settings.ACTUAL_SETUP.n_ahead * settings.ACTUAL_SETUP.num_features,
+                                  kernel_initializer=tf.initializers.zeros()),
+            # Shape => [batch, out_steps, features]
+            tf.keras.layers.Reshape([settings.ACTUAL_SETUP.n_ahead, settings.ACTUAL_SETUP.num_features])
+        ])
+    elif param.algorithm == Algorithm.DENSE:
+        act_model = tf.keras.Sequential([
+            # Take the last time step.
+            # Shape [batch, time, features] => [batch, 1, features]
+            tf.keras.layers.Lambda(lambda x: x[:, -1:, :]),
+            # Shape => [batch, 1, dense_units]
+            tf.keras.layers.Dense(512, activation='relu'),
+            # Shape => [batch, out_steps*features]
+            tf.keras.layers.Dense(settings.ACTUAL_SETUP.n_ahead * settings.ACTUAL_SETUP.num_features,
+                                  kernel_initializer=tf.initializers.zeros()),
+            # Shape => [batch, out_steps, features]
+            tf.keras.layers.Reshape([settings.ACTUAL_SETUP.n_ahead, settings.ACTUAL_SETUP.num_features])
+        ])
+    elif param.algorithm == Algorithm.CONV:
+        CONV_WIDTH = 3
+        act_model = tf.keras.Sequential([
+            # Shape [batch, time, features] => [batch, CONV_WIDTH, features]
+            tf.keras.layers.Lambda(lambda x: x[:, -CONV_WIDTH:, :]),
+            # Shape => [batch, 1, conv_units]
+            tf.keras.layers.Conv1D(256, activation='relu', kernel_size=(CONV_WIDTH)),
+            # Shape => [batch, 1,  out_steps*features]
+            tf.keras.layers.Dense(settings.ACTUAL_SETUP.n_ahead * settings.ACTUAL_SETUP.num_features,
+                                  kernel_initializer=tf.initializers.zeros()),
+            # Shape => [batch, out_steps, features]
+            tf.keras.layers.Reshape([settings.ACTUAL_SETUP.n_ahead, settings.ACTUAL_SETUP.num_features])
+        ])
+    elif param.algorithm == Algorithm.LSTM:
+        act_model = tf.keras.Sequential([
+            # Shape [batch, time, features] => [batch, lstm_units].
+            # Adding more `lstm_units` just overfits more quickly.
+            tf.keras.layers.LSTM(32, return_sequences=False),
+            # Shape => [batch, out_steps*features].
+            tf.keras.layers.Dense(settings.ACTUAL_SETUP.n_ahead * settings.ACTUAL_SETUP.num_features,
+                                  kernel_initializer=tf.initializers.zeros()),
+            # Shape => [batch, out_steps, features].
+            tf.keras.layers.Reshape([settings.ACTUAL_SETUP.n_ahead, settings.ACTUAL_SETUP.num_features])
+        ])
+
+    return act_model
 
 
 def compile_and_fit(model, window, params: ModelParameter):
@@ -50,9 +92,6 @@ def plot_history(hist):
     plt.show()
 
 
-# store for short access
-model_parameters = settings.ACTUAL_SETUP.model_parameters
-
 # load the pickle file with the windowed data
 with open(settings.FILE_WINDOWED_DATA, 'rb') as f:
     multi_window = pickle.load(f)
@@ -60,11 +99,13 @@ with open(settings.FILE_WINDOWED_DATA, 'rb') as f:
 if multi_window is None:
     print("No multi_window was found")
 
+params = settings.ACTUAL_SETUP.model_parameters
+
 # create the model
-model = create_model()
+model = create_model(params)
 
 # fit the model and get the history
-history = compile_and_fit(model, multi_window)
+history = compile_and_fit(model, multi_window, params)
 
 # save the model to use it later
 save_model(model)
