@@ -17,12 +17,13 @@ DIR_VALIDATION = os.path.join(DIR_DATA, 'validation\\')
 
 TEST_TRAIN_VALID = ["train", "test", "val"]
 
-SETUP_KEY = "fast_lane1"
+SETUP_KEY = "fast_lane1_zto"
 
 ALL_SETUPS = {
     "default": Setup(),
     "fast_lane": Setup(pseudo_id_to_use=1, time_windows_to_use=1, model_key="fast_lane"),
-    "fast_lane1": Setup(pseudo_id_to_use=20, time_windows_to_use=2, model_key="fast_lane")
+    "fast_lane1": Setup(pseudo_id_to_use=20, time_windows_to_use=2, model_key="fast_lane"),
+    "fast_lane1_zto": Setup(normalization=Normalization.ZERO_TO_ONE, pseudo_id_to_use=20, time_windows_to_use=2, model_key="fast_lane")
 }
 
 ACTUAL_SETUP = ALL_SETUPS[SETUP_KEY]
@@ -40,7 +41,7 @@ def FILE_TIME_WINDOW_X(index: int):
 
 
 # Filepath to the normalized values
-FILE_NORMALIZATION_DATA = os.path.join(DIR_PREPROCESSING, f"{ACTUAL_SETUP.normalization_name}normalized_values.csv")
+FILE_NORMALIZATION_DATA = os.path.join(DIR_PREPROCESSING, f"{ACTUAL_SETUP.normalization_name}normalized_values.pkl")
 
 # Filepath to normalization plot
 FILE_NORMALIZATION_PLOT = os.path.join(DIR_PREPROCESSING, f"{ACTUAL_SETUP.normalization_name}normalized_plot.png")

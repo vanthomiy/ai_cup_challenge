@@ -255,8 +255,7 @@ elif settings.ACTUAL_SETUP.normalization == Normalization.MEAN:
     amplitude = 2
     offset = 0
 elif settings.ACTUAL_SETUP.normalization == Normalization.ZERO_TO_ONE:
-    train_df_normalized, normalization = normalize_data_ZERO_TO_ONE(
-        train_transposed=train_df_cleaned_transposed_interval)
+    train_df_normalized, normalization = normalize_data_ZERO_TO_ONE(train_transposed=train_df_cleaned_transposed_interval)
     amplitude = 0.5
     offset = 0.5
 
