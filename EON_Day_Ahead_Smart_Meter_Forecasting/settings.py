@@ -17,13 +17,11 @@ DIR_VALIDATION = os.path.join(DIR_DATA, 'validation\\')
 
 TEST_TRAIN_VALID = ["train", "test", "val"]
 
-SETUP_KEY = "fast_lane1_zto"
+SETUP_KEY = "single_id"
 
 ALL_SETUPS = {
     "default": Setup(),
-    "fast_lane": Setup(pseudo_id_to_use=1, time_windows_to_use=1, model_key="fast_lane"),
-    "fast_lane1": Setup(pseudo_id_to_use=20, time_windows_to_use=2, model_key="fast_lane"),
-    "fast_lane1_zto": Setup(normalization=Normalization.ZERO_TO_ONE, pseudo_id_to_use=20, time_windows_to_use=2, model_key="fast_lane")
+    "single_id": Setup(pseudo_id_to_use=1),
 }
 
 ACTUAL_SETUP = ALL_SETUPS[SETUP_KEY]
