@@ -90,7 +90,7 @@ def normalize_data_MEAN(train_transposed: pd.DataFrame) -> (pd.DataFrame, dict):
         "mean": df.to_numpy().mean(),
         "std": df.to_numpy().std()
     }
-    df = (df - _normalization["std"]) / _normalization["mean"]
+    df = (df - _normalization["mean"]) / _normalization["std"]
     return df, _normalization
 
 
@@ -219,9 +219,9 @@ def adjust_time_interval(df_t):
 
 
 def save_normalization_plot(df_n):
-    df_n = df_n.melt(var_name='Column', value_name='Normalized')
+    df_melt = df_n.melt(var_name='Column', value_name='Normalized')
     plt.figure(figsize=(12, 6))
-    ax = sns.violinplot(x='Column', y='Normalized', data=df_n)
+    ax = sns.violinplot(x='Column', y='Normalized', data=df_melt)
     _ = ax.set_xticklabels(df_n.keys(), rotation=90)
     plt.savefig(settings.FILE_NORMALIZATION_PLOT)
 
