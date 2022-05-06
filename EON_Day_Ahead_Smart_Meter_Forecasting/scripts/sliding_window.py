@@ -89,7 +89,3 @@ for value in settings.TEST_TRAIN_VALID:
 
     tf.data.experimental.save(
         data, settings.FILE_WINDOWED_DATA(value))
-
-"""
-with open(settings.FILE_WINDOWED_DATA, 'wb') as f:
-    pickle.dump(windowed_data["train"], f)"""

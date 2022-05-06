@@ -131,8 +131,8 @@ def split_dataset(df: pd.DataFrame) -> list:
     :return: A list containing the split dataset.
     """
 
-    # Split factor which is defined by days * hours per day * data per hour
-    split_by = 38 * 24 * 2
+    # Split factor which is defined by days * hours per day * data per hour / the amount of the data per interval tbu
+    split_by = int(38 * 24 * 2 / settings.ACTUAL_SETUP.data_interval.value)
     temp_lst_split_dataset = []
     amount_of_times = len(df.index)
     # Loop through every timespan and split the dataset at the given index
