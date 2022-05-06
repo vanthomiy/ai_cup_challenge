@@ -1,6 +1,9 @@
 import pickle
 from datetime import datetime
 import numpy as np
+from matplotlib import pyplot as plt
+import seaborn as sns
+
 import settings
 import pandas as pd
 from scripts.setup import Normalization, Timespan
@@ -186,6 +189,43 @@ def create_and_save_data_windows(lst_split_dataset: list, _amplitude: int, _offs
         window_id += 1
 
 
+def adjust_time_interval(df_t):
+    """
+    Adjusts the time interval of the dataframe.
+    For 0-23 Hours-Intervals the data will be cut off
+    For 24 Hour-Interval the data will be summed up
+    :param df_t: The actual, already transposed, df
+    :return: The intervall adjusted df
+    """
+    interval = settings.ACTUAL_SETUP.data_interval.value
+    df_t_i = None
+    if settings.ACTUAL_SETUP.data_interval != Timespan.DAILY:
+        # Just cut the data
+        df_t_i = df_t.iloc[::interval, :]
+    else:
+        # Sum up the data for the timespan
+        # Maybe there is a faster way to do this
+        # Creates emtpy df with columns
+        df_t_i = pd.DataFrame(columns=df_t.columns.tolist())
+        # Loops through the df and append n rows as sum to the new df
+        for index in range(0, len(df_t.index), interval):
+            df_t_i = df_t_i.append(df_t.iloc[index:index + interval].sum(), ignore_index=True)
+        # loads the index (datetime)
+        index = df_t.iloc[::interval, :].index
+        # appends index to the created df
+        df_t_i = df_t_i.set_index(index)
+
+    return df_t_i
+
+
+def save_normalization_plot(df_n):
+    df_n = df_n.melt(var_name='Column', value_name='Normalized')
+    plt.figure(figsize=(12, 6))
+    ax = sns.violinplot(x='Column', y='Normalized', data=df_n)
+    _ = ax.set_xticklabels(df_n.keys(), rotation=90)
+    plt.savefig(settings.FILE_NORMALIZATION_PLOT)
+
+
 # Load the data from the csv files
 train_df, counts_df = load_data()
 
@@ -199,20 +239,7 @@ test_clean_train_dataset(train=train_df, cleaned=train_df_cleaned)
 train_df_cleaned_transposed = train_df_cleaned.T
 
 # Adjust the time intervall of the data [half-hourly, hourly and daily]
-interval = settings.ACTUAL_SETUP.data_interval.value
-train_df_cleaned_transposed_interval = None
-if settings.ACTUAL_SETUP.data_interval == Timespan.DAILY:
-    # Just cut the data
-    train_df_cleaned_transposed_interval = train_df_cleaned_transposed.iloc[::interval, :]
-else:
-    # Sum up the data for the timespan
-    # Maybe there is a faster way to do this
-    train_df_cleaned_transposed_interval = pd.DataFrame(train_df_cleaned_transposed.columns.tolist())
-    for index in range(0, len(train_df_cleaned_transposed.index), interval):
-        train_df_cleaned_transposed_interval.append(
-            train_df_cleaned_transposed.iloc[index:index + interval].sum(),ignore_index=True)
-
-# TODO("if interval is daily we have to sum the values up")
+train_df_cleaned_transposed_interval = adjust_time_interval(train_df_cleaned_transposed)
 
 # Introduce necessary variables and predefine them as None
 amplitude = None
@@ -228,7 +255,8 @@ elif settings.ACTUAL_SETUP.normalization == Normalization.MEAN:
     amplitude = 2
     offset = 0
 elif settings.ACTUAL_SETUP.normalization == Normalization.ZERO_TO_ONE:
-    train_df_normalized, normalization = normalize_data_ZERO_TO_ONE(train_transposed=train_df_cleaned_transposed_interval)
+    train_df_normalized, normalization = normalize_data_ZERO_TO_ONE(
+        train_transposed=train_df_cleaned_transposed_interval)
     amplitude = 0.5
     offset = 0.5
 
@@ -238,6 +266,9 @@ if amplitude is None or offset is None or train_df_normalized is None or normali
 
 # Save normalization values
 save_normalization_values(normalization_values=normalization)
+
+# Save the plot for the normalized data
+save_normalization_plot(train_df_normalized)
 
 # Split dataset at the gaps in the dataset
 lst_split_df = split_dataset(df=train_df_normalized)

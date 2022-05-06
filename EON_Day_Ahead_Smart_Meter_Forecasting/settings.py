@@ -42,6 +42,9 @@ def FILE_TIME_WINDOW_X(index: int):
 # Filepath to the normalized values
 FILE_NORMALIZATION_DATA = os.path.join(DIR_PREPROCESSING, f"{ACTUAL_SETUP.normalization_name}normalized_values.csv")
 
+# Filepath to normalization plot
+FILE_NORMALIZATION_PLOT = os.path.join(DIR_PREPROCESSING, f"{ACTUAL_SETUP.normalization_name}normalized_plot.csv")
+
 
 # Filepath to the windowed data values
 def FILE_WINDOWED_DATA(index: str):
