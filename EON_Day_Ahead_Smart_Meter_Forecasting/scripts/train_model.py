@@ -75,9 +75,13 @@ def create_model(param):
 
 
 def compile_and_fit(model, window, params: ModelParameter):
-    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor="mean_absolute_percentage_error", # 'mean_absolute_error',
                                                       patience=params.patience,
                                                       mode='min')
+
+    """model.compile(loss=tf.losses.MeanSquaredError(),
+                  optimizer=tf.optimizers.Adam(),
+                  metrics=[tf.metrics.MeanAbsoluteError()])"""
 
     model.compile(loss=params.loss,
                   optimizer=params.optimizer,
@@ -95,13 +99,19 @@ def save_model(model):
 
 def plot_history(hist):
     # summarize history for loss
-    plt.plot(hist.history['loss'])
-    plt.plot(hist.history['val_loss'])
-    plt.title('model loss')
-    plt.ylabel('loss')
-    plt.xlabel('epoch')
-    plt.legend(['train', 'test'], loc='upper left')
-    plt.savefig(settings.FILE_MODEL_TRAIN)  # save as png
+    for key in hist.history:
+        if not key.startswith("val"):
+            plt.clf()
+            plt.plot(hist.history[key])
+            plt.plot(hist.history["val_" + str(key)])
+            plt.title('model ' + key)
+            plt.ylabel(key)
+            plt.xlabel('epoch')
+            plt.legend(['train', 'test'], loc='upper left')
+            plt.savefig(settings.FILE_MODEL_TRAIN(key))  # save as png
+
+
+
 
 
 # load the multi window

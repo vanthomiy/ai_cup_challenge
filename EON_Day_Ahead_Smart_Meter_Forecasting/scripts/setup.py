@@ -28,9 +28,9 @@ class ModelParameter:
     def __init__(self,
                  loss=tf.losses.MeanSquaredError(),
                  optimizer=tf.optimizers.Adam(),
-                 metrics=[tf.metrics.MeanAbsolutePercentageError()],
-                 max_epochs: int = 100,
-                 patience: int = 5,
+                 metrics=[tf.metrics.MeanAbsoluteError()],
+                 max_epochs: int = 1000,
+                 patience: int = 10,
                  algorithm: Algorithm = Algorithm.LSTM):
         self.loss = loss
         self.optimizer = optimizer
@@ -41,15 +41,18 @@ class ModelParameter:
 
 
 ALL_MODELS = {
-    "default": ModelParameter(),
+    "default_lstm": ModelParameter(algorithm=Algorithm.LSTM),
+    "default_linear": ModelParameter(algorithm=Algorithm.LINEAR),
+    "default_dense": ModelParameter(algorithm=Algorithm.DENSE),
+    "default_conv": ModelParameter(algorithm=Algorithm.CONV),
+    "mape": ModelParameter(metrics=[tf.metrics.MeanAbsolutePercentageError()]),
     "fast_lane": ModelParameter(max_epochs=3),
-    "patience": ModelParameter(patience=5)
 }
 
 
 class Setup:
     def __init__(self,
-                 model_key="default",
+                 model_key="default_lstm",
                  normalization: Normalization = Normalization.MEAN,
                  n_ahead: int = 24,
                  n_before: int = 24,

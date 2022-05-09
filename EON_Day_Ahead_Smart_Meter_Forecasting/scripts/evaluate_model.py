@@ -72,7 +72,7 @@ def update_evaluation_file(perf, kys):
 def plot(data, model=None, plot_col='value', max_subplots=3):
     total_window_size = settings.ACTUAL_SETUP.n_ahead + settings.ACTUAL_SETUP.n_before
 
-    input_slice = slice(0, settings.ACTUAL_SETUP.n_ahead)
+    input_slice = slice(0, settings.ACTUAL_SETUP.n_before)
     input_indices = np.arange(total_window_size)[input_slice]
 
     label_start = total_window_size - settings.ACTUAL_SETUP.n_ahead

@@ -14,13 +14,20 @@ DIR_START = os.path.join(DIR_DATA, 'start\\')
 DIR_PREPROCESSING = os.path.join(DIR_DATA, 'preprocessing\\')
 DIR_SLIDING_WINDOW = os.path.join(DIR_DATA, 'sliding_window\\')
 DIR_VALIDATION = os.path.join(DIR_DATA, 'validation\\')
+DIR_SUBMISSION = os.path.join(DIR_DATA, 'submission\\')
 
 TEST_TRAIN_VALID = ["train", "test", "val"]
 
-SETUP_KEY = "single_id"
+# Change this key to use another setup
+SETUP_KEY = "daily_mape"
 
 ALL_SETUPS = {
-    "default": Setup(),
+    "default_lstm": Setup(pseudo_id_to_use=1, model_key="default_lstm"),
+    "daily_lstm": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="default_lstm"),
+    "daily_mape": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="mape"),
+    "default_linear": Setup(pseudo_id_to_use=1, model_key="default_linear"),
+    "default_dense": Setup(pseudo_id_to_use=1, model_key="default_dense"),
+    "default_conv": Setup(pseudo_id_to_use=1, model_key="default_conv"),
     "single_id": Setup(pseudo_id_to_use=1),
 }
 
@@ -38,6 +45,7 @@ def FILE_TIME_WINDOW_X(index: int):
     return os.path.join(DIR_PREPROCESSING, f"{ACTUAL_SETUP.normalization_name}dataset{index}.csv")
 
 
+
 # Filepath to the normalized values
 FILE_NORMALIZATION_DATA = os.path.join(DIR_PREPROCESSING, f"{ACTUAL_SETUP.normalization_name}normalized_values.pkl")
 
@@ -53,7 +61,10 @@ def FILE_WINDOWED_DATA(index: str):
 # Filepath to the model
 FILE_MODEL = os.path.join(DIR_MODEL, f"{ACTUAL_SETUP.model_name}model")
 
-FILE_MODEL_TRAIN = os.path.join(DIR_MODEL, f"{ACTUAL_SETUP.model_name}train.png")
+
+def FILE_MODEL_TRAIN(name: str):
+    return os.path.join(DIR_MODEL, f"{ACTUAL_SETUP.model_name + name}.png")
+
 
 FILE_EVALUATION_DATA = os.path.join(DIR_VALIDATION, f"evaluation.csv")
 
@@ -62,3 +73,6 @@ FILE_EVALUATION_OVERVIEW = os.path.join(DIR_VALIDATION, f"evaluation.png")
 FILE_EVALUATION_TIMESERIES = os.path.join(DIR_VALIDATION, f"{ACTUAL_SETUP.sliding_window_name}timeseries.png")
 
 PSEUDO_IDS = pd.read_csv(FILE_TRAIN_DATA)["pseudo_id"].tolist()[:ACTUAL_SETUP.pseudo_id_to_use]
+
+FILE_SUBMISSION_NORMED_DATA = os.path.join(DIR_SUBMISSION, f"{ACTUAL_SETUP.sliding_window_name}submission_normed.csv")
+FILE_SUBMISSION_DATA = os.path.join(DIR_SUBMISSION, f"{ACTUAL_SETUP.sliding_window_name}submission.csv")

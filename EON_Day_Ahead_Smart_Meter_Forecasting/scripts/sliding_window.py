@@ -61,7 +61,7 @@ def make_dataset(data_list):
             targets=None,
             sequence_length=total_window_size,
             sequence_stride=1,
-            shuffle=False,
+            shuffle=True,
             batch_size=32)
 
         ds_temp = ds_temp.map(split_window)

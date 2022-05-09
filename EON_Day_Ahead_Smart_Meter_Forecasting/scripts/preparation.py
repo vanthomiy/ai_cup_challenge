@@ -184,6 +184,8 @@ def create_and_save_data_windows(lst_split_dataset: list, _amplitude: int, _offs
 
         # Create a dataframe from the list which contains every
         df = pd.DataFrame(lst_data_per_timestamp)
+
+        df["time"] = timespan.index
         # Save the dataframe to a csv file with the current id
         df.to_csv(settings.FILE_TIME_WINDOW_X(window_id))
         window_id += 1
