@@ -34,11 +34,13 @@ def windowing(dfs):
 
             features = [pseudo_id]
             features.extend(settings.ACTUAL_SETUP.features)
+            features.extend(settings.ACTUAL_SETUP.weather_features)
             features.extend(["time"])
             df_id = dfs[time][features]
             df_id.rename(columns={pseudo_id: 'value'}, inplace=True)
             features = ["value"]
             features.extend(settings.ACTUAL_SETUP.features)
+            features.extend(settings.ACTUAL_SETUP.weather_features)
             df_id["pseudo_id"] = settings.PSEUDO_IDS.index(pseudo_id)
 
             wndw[pseudo_id].append(df_id.tail(settings.ACTUAL_SETUP.n_before))
@@ -88,8 +90,12 @@ def renormalize_data(df):
     df_un = (df * _normalization["std"] + _normalization["mean"])
 
     for pseudo_id in settings.PSEUDO_IDS:
-        count = counts.loc[counts.pseudo_id == pseudo_id]["n_dwellings"][0]
-        df_un.iloc[settings.PSEUDO_IDS.index(pseudo_id)] *= count
+        try:
+            count_df = counts.loc[counts["pseudo_id"] == pseudo_id]
+            count = count_df["n_dwellings"].iloc[0]
+            df_un.iloc[settings.PSEUDO_IDS.index(pseudo_id)] *= count
+        except Exception as ex:
+            pass
 
     df_un.insert(0, 'pseudo_id', ids)
     return df_un

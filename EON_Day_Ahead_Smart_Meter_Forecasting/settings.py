@@ -19,13 +19,14 @@ DIR_SUBMISSION = os.path.join(DIR_DATA, 'submission\\')
 TEST_TRAIN_VALID = ["train", "test", "val"]
 
 # Change this key to use another setup
-SETUP_KEY = "daily_mape_weather"
+SETUP_KEY = "daily_mape_weather_full"
 
 ALL_SETUPS = {
     "default_lstm": Setup(pseudo_id_to_use=1, model_key="default_lstm"),
     "daily_lstm": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="default_lstm"),
-    "daily_mape": Setup(pseudo_id_to_use=10, n_ahead=24, n_before=24 * 3, model_key="mape"),
-    "daily_mape_weather": Setup(pseudo_id_to_use=10, n_ahead=24, n_before=24 * 3, model_key="mape"),
+    "daily_mape": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="mape"),
+    "daily_mape_weather": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="mape"),
+    "daily_mape_weather_full": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="mape"),
     "default_linear": Setup(pseudo_id_to_use=1, model_key="default_linear"),
     "default_dense": Setup(pseudo_id_to_use=1, model_key="default_dense"),
     "default_conv": Setup(pseudo_id_to_use=1, model_key="default_conv"),
