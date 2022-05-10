@@ -17,10 +17,12 @@ def load_time_window_data():
         for pseudo_id in settings.PSEUDO_IDS:
             features = [pseudo_id]
             features.extend(settings.ACTUAL_SETUP.features)
+            features.extend(settings.ACTUAL_SETUP.weather_features)
             df_id = df[features]
             df_id.rename(columns={pseudo_id: 'value'}, inplace=True)
             features = ["value"]
             features.extend(settings.ACTUAL_SETUP.features)
+            features.extend(settings.ACTUAL_SETUP.weather_features)
             df_id["pseudo_id"] = settings.PSEUDO_IDS.index(pseudo_id)
 
             # df is list of all values

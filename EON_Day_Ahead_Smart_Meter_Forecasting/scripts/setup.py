@@ -59,7 +59,8 @@ class Setup:
                  time_windows_to_use=21,
                  pseudo_id_to_use=60,
                  features=["day sin", "day cos", "year sin", "year cos"],
-                 num_features=6,
+                 weather_features = ["tavg_mean"],
+                 #num_features=6,
                  data_interval: Timespan = Timespan.HOURLY):
         self.normalization = normalization
         """What normalization should be used? \"none\", \"mean\", \"01\""""
@@ -77,14 +78,15 @@ class Setup:
         """The actual columns / features for the model"""
         self.features = features
         """The name of the features"""
-        self.num_features = num_features
+        self.num_features = len(features) + 2 + len(weather_features)
         """The count of the features"""
         self.time_windows_to_use = time_windows_to_use
         """How much of the 21 data windows should be used"""
         self.pseudo_id_to_use = pseudo_id_to_use
         """How much of the households should be used (value between 1 and 60)"""
-        self.normalization_name = f"normierung_{str(self.normalization.name).lower()}_"
-
+        self.normalization_name = f"normierung_{str(self.normalization.name).lower()}_" \
+                                  f"fc_{str(self.num_features)}_"
+        self.weather_features = weather_features
         self.sliding_window_name = f"{self.normalization_name}_" \
                                    f"nahead_{str(self.n_ahead).lower()}_" \
                                    f"nbefore_{str(self.n_before).lower()}_" \

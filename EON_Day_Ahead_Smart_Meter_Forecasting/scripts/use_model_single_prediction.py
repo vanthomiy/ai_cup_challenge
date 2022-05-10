@@ -27,11 +27,13 @@ def windowing():
 
             features = [pseudo_id]
             features.extend(settings.ACTUAL_SETUP.features)
+            features.extend(settings.ACTUAL_SETUP.weather_features)
             features.extend(["time"])
             df_id = df[features]
             df_id.rename(columns={pseudo_id: 'value'}, inplace=True)
             features = ["value"]
             features.extend(settings.ACTUAL_SETUP.features)
+            features.extend(settings.ACTUAL_SETUP.weather_features)
             df_id["pseudo_id"] = settings.PSEUDO_IDS.index(pseudo_id)
 
             wndw[pseudo_id].append(df_id.tail(settings.ACTUAL_SETUP.n_before))

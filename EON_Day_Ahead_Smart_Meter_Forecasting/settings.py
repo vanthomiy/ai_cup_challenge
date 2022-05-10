@@ -19,12 +19,13 @@ DIR_SUBMISSION = os.path.join(DIR_DATA, 'submission\\')
 TEST_TRAIN_VALID = ["train", "test", "val"]
 
 # Change this key to use another setup
-SETUP_KEY = "daily_mape"
+SETUP_KEY = "daily_mape_weather"
 
 ALL_SETUPS = {
     "default_lstm": Setup(pseudo_id_to_use=1, model_key="default_lstm"),
     "daily_lstm": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="default_lstm"),
-    "daily_mape": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="mape"),
+    "daily_mape": Setup(pseudo_id_to_use=10, n_ahead=24, n_before=24 * 3, model_key="mape"),
+    "daily_mape_weather": Setup(pseudo_id_to_use=10, n_ahead=24, n_before=24 * 3, model_key="mape"),
     "default_linear": Setup(pseudo_id_to_use=1, model_key="default_linear"),
     "default_dense": Setup(pseudo_id_to_use=1, model_key="default_dense"),
     "default_conv": Setup(pseudo_id_to_use=1, model_key="default_conv"),
@@ -39,6 +40,7 @@ FILE_TRAIN_DATA = os.path.join(DIR_START, "train.csv")
 # File path of the original 'counts.csv' dataset which contains the amount of dwellings per id in the 'train.csv'
 FILE_COUNTS_DATA = os.path.join(DIR_START, "counts.csv")
 
+FILE_WEATHER_DATA = os.path.join(DIR_START, "de-weather-data-aggregated.csv")
 
 # Filepath to the window by index and actual setup
 def FILE_TIME_WINDOW_X(index: int):
@@ -67,8 +69,10 @@ def FILE_MODEL_TRAIN(name: str):
 
 
 FILE_EVALUATION_DATA = os.path.join(DIR_VALIDATION, f"evaluation.csv")
+FILE_MAPE_EVALUATION_DATA = os.path.join(DIR_VALIDATION, f"mape_evaluation.csv")
 
 FILE_EVALUATION_OVERVIEW = os.path.join(DIR_VALIDATION, f"evaluation.png")
+FILE_MAPE_EVALUATION_OVERVIEW = os.path.join(DIR_VALIDATION, f"mape_evaluation.png")
 
 FILE_EVALUATION_TIMESERIES = os.path.join(DIR_VALIDATION, f"{ACTUAL_SETUP.sliding_window_name}timeseries.png")
 
@@ -76,3 +80,4 @@ PSEUDO_IDS = pd.read_csv(FILE_TRAIN_DATA)["pseudo_id"].tolist()[:ACTUAL_SETUP.ps
 
 FILE_SUBMISSION_NORMED_DATA = os.path.join(DIR_SUBMISSION, f"{ACTUAL_SETUP.sliding_window_name}submission_normed.csv")
 FILE_SUBMISSION_DATA = os.path.join(DIR_SUBMISSION, f"{ACTUAL_SETUP.sliding_window_name}submission.csv")
+

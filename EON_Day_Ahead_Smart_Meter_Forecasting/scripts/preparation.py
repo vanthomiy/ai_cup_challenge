@@ -179,6 +179,9 @@ def create_and_save_data_windows(lst_split_dataset: list, _amplitude: int, _offs
             for pseudo_id in settings.PSEUDO_IDS:
                 dict_timestamp_data[pseudo_id] = row[pseudo_id]
 
+            for weather_data in settings.ACTUAL_SETUP.weather_features:
+                dict_timestamp_data[weather_data] = row[weather_data]
+
             # Save temporary dataframe in the list
             lst_data_per_timestamp.append(dict_timestamp_data)
 
@@ -228,6 +231,47 @@ def save_normalization_plot(df_n):
     plt.savefig(settings.FILE_NORMALIZATION_PLOT)
 
 
+def add_weather_data(df):
+    # we define the wheater columns to use in the setup
+    if len(settings.ACTUAL_SETUP.weather_features) <= 0:
+        return df
+
+    # load the weather data
+    weather_df = pd.read_csv(settings.FILE_WEATHER_DATA)
+
+    # make the dataset smaller. only columns and rows that are needed
+    # exclude columns
+
+    all_days = [str(datetime.strptime(string_day, '%Y-%m-%d %H:%M:%S').date()) for string_day in df.index.tolist()]
+    all_days = list(dict.fromkeys(all_days))
+
+    # condition mask
+    mask = weather_df['time'].isin(all_days)
+
+    # new dataframe with selected rows
+    df_wr = pd.DataFrame(weather_df[mask])
+
+    # norm the data
+    mean = df_wr.mean()
+    std = df_wr.std()
+
+    df_wr = (df_wr - mean) / std
+
+    n_times = int(24 * (settings.ACTUAL_SETUP.data_interval.value / 2))
+    for col in settings.ACTUAL_SETUP.weather_features:
+        col_data = []
+
+        for data in df_wr[col].values:
+            col_data.extend([data]*n_times)
+        df[col] = col_data
+
+
+    return df
+    # exclude all rows that are not necessary
+
+
+
+
 # Load the data from the csv files
 train_df, counts_df = load_data()
 
@@ -242,6 +286,7 @@ train_df_cleaned_transposed = train_df_cleaned.T
 
 # Adjust the time intervall of the data [half-hourly, hourly and daily]
 train_df_cleaned_transposed_interval = adjust_time_interval(train_df_cleaned_transposed)
+
 
 # Introduce necessary variables and predefine them as None
 amplitude = None
@@ -271,8 +316,11 @@ save_normalization_values(normalization_values=normalization)
 # Save the plot for the normalized data
 save_normalization_plot(train_df_normalized)
 
+# Add weather data if necessary
+train_df_normalized_wd = add_weather_data(train_df_normalized)
+
 # Split dataset at the gaps in the dataset
-lst_split_df = split_dataset(df=train_df_normalized)
+lst_split_df = split_dataset(df=train_df_normalized_wd)
 
 # Create windows
 create_and_save_data_windows(lst_split_dataset=lst_split_df, _amplitude=amplitude, _offset=offset)
