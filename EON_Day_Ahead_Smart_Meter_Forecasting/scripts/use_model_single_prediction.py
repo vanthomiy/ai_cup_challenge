@@ -48,6 +48,7 @@ def predict_values(mdl, wndw):
             # start time
             actual_time_string = time["time"].tolist()[-1]
             datetime_obj = datetime.strptime(actual_time_string, '%Y-%m-%d %H:%M:%S')
+            datetime_obj = datetime_obj - offset
             time.pop("time")
 
             arr_data = np.array(time)
@@ -100,6 +101,8 @@ def create_submission_format(preds):
 
 
 # create windows and predictions for each time
+
+offset = timedelta(days=settings.ACTUAL_SETUP.n_ahead)
 
 results = []
 
