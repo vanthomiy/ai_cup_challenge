@@ -262,16 +262,14 @@ def add_weather_data(df):
         col_data = []
 
         for data in df_wr[col].values:
-            col_data.extend([data] * n_times)
+            col_data.extend([data]*n_times)
         df[col] = col_data
 
-    normalization_values = {"mean": mean, "std": std}
-
-    with open(settings.FILE_NORMALIZATION_DATA_WEATHER, 'wb') as file:
-        pickle.dump(normalization_values, file)
 
     return df
     # exclude all rows that are not necessary
+
+
 
 
 # Load the data from the csv files
@@ -289,6 +287,7 @@ train_df_cleaned_transposed = train_df_cleaned.T
 # Adjust the time intervall of the data [half-hourly, hourly and daily]
 train_df_cleaned_transposed_interval = adjust_time_interval(train_df_cleaned_transposed)
 
+
 # Introduce necessary variables and predefine them as None
 amplitude = None
 offset = None
@@ -303,8 +302,7 @@ elif settings.ACTUAL_SETUP.normalization == Normalization.MEAN:
     amplitude = 2
     offset = 0
 elif settings.ACTUAL_SETUP.normalization == Normalization.ZERO_TO_ONE:
-    train_df_normalized, normalization = normalize_data_ZERO_TO_ONE(
-        train_transposed=train_df_cleaned_transposed_interval)
+    train_df_normalized, normalization = normalize_data_ZERO_TO_ONE(train_transposed=train_df_cleaned_transposed_interval)
     amplitude = 0.5
     offset = 0.5
 

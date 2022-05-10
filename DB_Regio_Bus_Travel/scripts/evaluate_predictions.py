@@ -32,7 +32,6 @@ def find_data_for_prediction():
     df_rcr = df_rc[df_rc['pseudo_id'].isin(ids)]
     return df_p, df_rcr
 
-
 def update_evaluation_file(value):
     # Store values in the csv file
     df = pd.read_csv(settings.FILE_MAPE_EVALUATION_DATA)
@@ -59,33 +58,9 @@ def update_evaluation_file(value):
     _ = plt.legend()
     plt.savefig(settings.FILE_MAPE_EVALUATION_OVERVIEW)
 
-
-def plot(df_p, df_r):
-    plt.clf()
-
-    row = df_p.iloc[0]
-    a = row.T
-    data = a[::24].tolist()[1:]
-    plt.plot(data, color='magenta', marker='o', mfc='pink')  # plot the data
-    plt.xticks(range(0, len(data) + 1, 1))  # set the tick frequency on x-axis
-
-    row = df_r.iloc[0]
-    a = row.T
-    data = a[::24].tolist()[1:]
-    plt.plot(data, color='red', marker='x', mfc='pink')  # plot the data
-    plt.xticks(range(0, len(data) + 1, 1))  # set the tick frequency on x-axis
-
-    plt.ylabel('data')  # set the label for y axis
-    plt.xlabel('index')  # set the label for x-axis
-    plt.title("Plotting a list")  # set the title of the graph
-    plt.show()  # display the graph
-    plt.savefig(settings.FILE_MAPE_EVALUATION_TIMESERIES)
-
-
-
 df_p, df_r = find_data_for_prediction()
 mape = evaluate(df_p, df_r)
 print(mape)
 update_evaluation_file(mape)
 
-plot(df_p, df_r)
+

@@ -57,7 +57,7 @@ def predict_values(mdl, wndw):
             # start time
             actual_time_string = time["time"].tolist()[-1]
             datetime_obj = datetime.strptime(actual_time_string, '%Y-%m-%d %H:%M:%S')
-            datetime_obj = datetime_obj  # - offset
+            datetime_obj = datetime_obj # - offset
             time.pop("time")
 
             arr_data = np.array(time)
@@ -102,6 +102,7 @@ def renormalize_data(df):
 
 
 def create_submission_format(dfs):
+
     preds = []
 
     for id in range(0, settings.ACTUAL_SETUP.pseudo_id_to_use):
@@ -125,52 +126,13 @@ def create_submission_format(dfs):
     # now we have to map the time to the actual time...
 
 
-def load_weather_data(offset):
-    # startdate
-    date = datetime(2017, 1, 1).date()
-    days = timedelta(days=38) - offset
-
-    start_date = date + days
-
-    # load the weather data
-    weather_df = pd.read_csv(settings.FILE_WEATHER_DATA)
-
-    # make the dataset smaller. only columns and rows that are needed
-    # exclude columns
-    all_days = []
-    for window in range(0, settings.ACTUAL_SETUP.time_windows_to_use):
-        days = [str(start_date + timedelta(days=days + window * 45)) for days in range(0, 7)]
-        days = list(dict.fromkeys(days))
-        all_days.extend(days)
-
-    # condition mask
-    mask = weather_df['time'].isin(all_days)
-
-    # new dataframe with selected rows
-    df_wr = pd.DataFrame(weather_df[mask])
-
-    # load normed data
-    with open(settings.FILE_NORMALIZATION_DATA_WEATHER, 'rb') as file:
-        normed = pickle.load(file)
-
-    df_wr = (df_wr - normed["mean"]) / normed["std"]
-
-    df_wr = df_wr.reset_index(drop=True)
-
-    df_wr["time"] = all_days
-
-    return df_wr
-
-
 # create windows and predictions for each time
 
-offset = timedelta(days=7)  # timedelta(days=0)
+offset = timedelta(days=7) # timedelta(days=0)
 
 results = []
 
 model = load_model()
-
-wather_data = load_weather_data(offset)
 
 dfs = None
 
@@ -191,7 +153,7 @@ for i in range(0, iterations):
     for id in predictions:
         for time in id:
             if time == 'pseudo_id':
-                continue
+               continue
 
             if time not in predicted_times:
                 predicted_times[time] = []
@@ -226,15 +188,12 @@ for i in range(0, iterations):
         list_row['year sin'] = _amplitude * np.sin(timestamp_s * (np.pi / seconds_per_year)) + _offset
         list_row['year cos'] = _amplitude * np.cos(timestamp_s * (np.pi / seconds_per_year)) + _offset
 
-        row = wather_data[wather_data["time"] == str(date_time.date())].iloc[0]
-        for weather_features in settings.ACTUAL_SETUP.weather_features:
-            list_row[weather_features] = row[weather_features]
-
         dfs[actual_window].loc[len(dfs[actual_window])] = list_row
 
         actual_count += 1
         if actual_count >= counts:
             actual_window += 1
             actual_count = 0
+
 
 create_submission_format(dfs)
