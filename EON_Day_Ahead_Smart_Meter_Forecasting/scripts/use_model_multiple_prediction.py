@@ -19,13 +19,14 @@ def load_model():
 
 def windowing(dfs):
     wndw = {}
-    dfs = []
+    if dfs is None:
+        dfs = []
 
     for time in range(0, settings.ACTUAL_SETUP.time_windows_to_use):
         if len(dfs) <= time:
             df = pd.read_csv(settings.FILE_TIME_WINDOW_X(time))
             n = int(offset.days * 24 * (settings.ACTUAL_SETUP.data_interval.value / 2))
-            df1 = df.iloc[:, :-n]
+            df1 = df.iloc[:-n]
             dfs.append(df1)
         for pseudo_id in settings.PSEUDO_IDS:
             if pseudo_id not in wndw:
@@ -54,7 +55,7 @@ def predict_values(mdl, wndw):
             # start time
             actual_time_string = time["time"].tolist()[-1]
             datetime_obj = datetime.strptime(actual_time_string, '%Y-%m-%d %H:%M:%S')
-            datetime_obj = datetime_obj - offset
+            datetime_obj = datetime_obj # - offset
             time.pop("time")
 
             arr_data = np.array(time)
@@ -94,7 +95,20 @@ def renormalize_data(df):
     return df_un
 
 
-def create_submission_format(preds):
+def create_submission_format(dfs):
+
+    preds = []
+
+    for id in range(0, settings.ACTUAL_SETUP.pseudo_id_to_use):
+        preds_for_id = {}
+        for df in dfs:
+            predicted_values = df.tail(7 * 24 * int(settings.ACTUAL_SETUP.data_interval.value / 2))
+            preds_for_id["pseudo_id"] = settings.PSEUDO_IDS[id]
+            for index, row in predicted_values.iterrows():
+                preds_for_id[row["time"]] = row[settings.PSEUDO_IDS[id]]
+
+        preds.append(preds_for_id)
+
     df = pd.DataFrame(preds)
     df.to_csv(settings.FILE_SUBMISSION_NORMED_DATA, index=False)
 
