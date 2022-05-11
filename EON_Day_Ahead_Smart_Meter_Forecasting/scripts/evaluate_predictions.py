@@ -1,4 +1,6 @@
 """This is used to evaluate the final predictions"""
+from datetime import datetime
+
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -31,6 +33,44 @@ def find_data_for_prediction():
     ids = df_p["pseudo_id"].tolist()
     df_rcr = df_rc[df_rc['pseudo_id'].isin(ids)]
     return df_p, df_rcr
+
+
+def create_submission_daily(df_hourly):
+    preds = []
+    ids = df_hourly.pop("pseudo_id")
+
+    for index, row in df_hourly.iterrows():
+        preds_for_id = {}
+        id_counts = {}
+
+        for column in df_hourly.columns:
+            date_obj = datetime.strptime(column, '%Y-%m-%d %H:%M:%S').date()
+
+            if date_obj in preds_for_id:
+                preds_for_id[date_obj] += row[column]
+                id_counts[date_obj] += 1
+            else:
+                preds_for_id[date_obj] = row[column]
+                id_counts[date_obj] = 1
+
+        preds.append(preds_for_id)
+
+    df = pd.DataFrame(preds)
+
+    # df["pseudo_id"] = ids
+    df.insert(0, 'pseudo_id', ids)
+
+    return df
+    # also save the un-normed values
+
+    # now we have to map the time to the actual time...
+
+
+def find_data_for_prediction_daily(df_r):
+    """Takes the predicted data and searches and arranges the real data"""
+    df_p_daily = pd.read_csv(settings.FILE_SUBMISSION_DATA_DAILY)
+    df_rcr_daily = create_submission_daily(df_r.copy())
+    return df_p_daily, df_rcr_daily
 
 
 def update_evaluation_file(value):
@@ -82,10 +122,18 @@ def plot(df_p, df_r):
     plt.savefig(settings.FILE_MAPE_EVALUATION_TIMESERIES)
 
 
-
 df_p, df_r = find_data_for_prediction()
+df_p_daily, df_r_daily = find_data_for_prediction_daily(df_r)
+
 mape = evaluate(df_p, df_r)
+mape_daily = evaluate(df_p_daily, df_r_daily)
+
 print(mape)
+print(mape_daily)
+
+print((mape + mape_daily) / 2)
+
 update_evaluation_file(mape)
 
 plot(df_p, df_r)
+plot(df_p_daily, df_r_daily)

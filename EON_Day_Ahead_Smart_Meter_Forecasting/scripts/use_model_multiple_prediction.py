@@ -120,6 +120,41 @@ def create_submission_format(dfs):
     df = renormalize_data(df)
     df.to_csv(settings.FILE_SUBMISSION_DATA, index=False)
 
+    return df
+    # also save the un-normed values
+
+    # now we have to map the time to the actual time...
+
+
+def create_submission_daily(df_hourly):
+    preds = []
+    ids = df_hourly.pop("pseudo_id")
+
+    for index, row in df_hourly.iterrows():
+        preds_for_id = {}
+        id_counts = {}
+
+        for column in df_hourly.columns:
+            date_obj = datetime.strptime(column, '%Y-%m-%d %H:%M:%S').date()
+
+            if date_obj in preds_for_id:
+                preds_for_id[date_obj] += row[column]
+                id_counts[date_obj] += 1
+            else:
+                preds_for_id[date_obj] = row[column]
+                id_counts[date_obj] = 1
+
+        #for key in preds_for_id:
+        #    preds_for_id[key] = preds_for_id[key] / id_counts[key]
+
+        preds.append(preds_for_id)
+
+    df = pd.DataFrame(preds)
+
+    # df["pseudo_id"] = ids
+    df.insert(0, 'pseudo_id', ids)
+
+    df.to_csv(settings.FILE_SUBMISSION_DATA_DAILY, index=False)
     # also save the un-normed values
 
     # now we have to map the time to the actual time...
@@ -237,4 +272,6 @@ for i in range(0, iterations):
             actual_window += 1
             actual_count = 0
 
-create_submission_format(dfs)
+sub_hourly = create_submission_format(dfs)
+
+create_submission_daily(sub_hourly)

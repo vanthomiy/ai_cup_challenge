@@ -19,20 +19,20 @@ DIR_SUBMISSION = os.path.join(DIR_DATA, 'submission\\')
 TEST_TRAIN_VALID = ["train", "test", "val"]
 
 # Change this key to use another setup
-SETUP_KEY = "submission_daily"
+SETUP_KEY = "daily_mape_weather"
 
 ALL_SETUPS = {
     "daily_lstm": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="default_lstm"),
     "daily_mape": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="mape"),
     "daily_mape_weather": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="mape",
-                                weather_features=["tavg_mean","snow_mean","wspd_mean","tsun_mean"]),
+                                weather_features=["tavg_mean", "snow_mean", "wspd_mean", "tsun_mean"]),
     "daily_mape_week": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 7, model_key="mape"),
 
-    "submission_daily": Setup(pseudo_id_to_use=1, n_ahead=7, data_interval=Timespan.DAILY, n_before=7, model_key="mape",
-                              weather_features=["tavg_mean","snow_mean","wspd_mean","tsun_mean"]),
+    "submission_daily": Setup(pseudo_id_to_use=1, n_ahead=1, data_interval=Timespan.DAILY, n_before=7, model_key="mape",
+                              weather_features=["tavg_mean", "snow_mean", "wspd_mean", "tsun_mean"]),
 
     "submission_hourly": Setup(pseudo_id_to_use=60, n_ahead=24, n_before=24 * 3, model_key="mape",
-                               weather_features=["tavg_mean","snow_mean","wspd_mean","tsun_mean"]),
+                               weather_features=["tavg_mean", "snow_mean", "wspd_mean", "tsun_mean"]),
 }
 
 ACTUAL_SETUP = ALL_SETUPS[SETUP_KEY]
@@ -45,15 +45,16 @@ FILE_COUNTS_DATA = os.path.join(DIR_START, "counts.csv")
 
 FILE_WEATHER_DATA = os.path.join(DIR_START, "de-weather-data-aggregated.csv")
 
+
 # Filepath to the window by index and actual setup
 def FILE_TIME_WINDOW_X(index: int):
     return os.path.join(DIR_PREPROCESSING, f"{ACTUAL_SETUP.normalization_name}dataset{index}.csv")
 
 
-
 # Filepath to the normalized values
 FILE_NORMALIZATION_DATA = os.path.join(DIR_PREPROCESSING, f"{ACTUAL_SETUP.normalization_name}normalized_values.pkl")
-FILE_NORMALIZATION_DATA_WEATHER = os.path.join(DIR_PREPROCESSING, f"{ACTUAL_SETUP.normalization_name}normalized_weather_values.pkl")
+FILE_NORMALIZATION_DATA_WEATHER = os.path.join(DIR_PREPROCESSING,
+                                               f"{ACTUAL_SETUP.normalization_name}normalized_weather_values.pkl")
 
 # Filepath to normalization plot
 FILE_NORMALIZATION_PLOT = os.path.join(DIR_PREPROCESSING, f"{ACTUAL_SETUP.normalization_name}normalized_plot.png")
@@ -84,5 +85,5 @@ FILE_MAPE_EVALUATION_TIMESERIES = os.path.join(DIR_VALIDATION, f"{ACTUAL_SETUP.s
 PSEUDO_IDS = pd.read_csv(FILE_TRAIN_DATA)["pseudo_id"].tolist()[:ACTUAL_SETUP.pseudo_id_to_use]
 
 FILE_SUBMISSION_NORMED_DATA = os.path.join(DIR_SUBMISSION, f"{ACTUAL_SETUP.sliding_window_name}submission_normed.csv")
-FILE_SUBMISSION_DATA = os.path.join(DIR_SUBMISSION, f"{ACTUAL_SETUP.sliding_window_name}submission.csv")
-
+FILE_SUBMISSION_DATA = os.path.join(DIR_SUBMISSION, f"{ACTUAL_SETUP.sliding_window_name}submission_hourly.csv")
+FILE_SUBMISSION_DATA_DAILY = os.path.join(DIR_SUBMISSION, f"{ACTUAL_SETUP.sliding_window_name}submission_daily.csv")
