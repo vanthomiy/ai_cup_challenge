@@ -257,7 +257,7 @@ def add_weather_data(df):
 
     df_wr = (df_wr - mean) / std
 
-    n_times = int(24 * (settings.ACTUAL_SETUP.data_interval.value / 2))
+    n_times = int(24 / (settings.ACTUAL_SETUP.data_interval.value / 2))
     for col in settings.ACTUAL_SETUP.weather_features:
         col_data = []
 
