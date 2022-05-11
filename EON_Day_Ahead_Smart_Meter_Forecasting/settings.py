@@ -19,18 +19,14 @@ DIR_SUBMISSION = os.path.join(DIR_DATA, 'submission\\')
 TEST_TRAIN_VALID = ["train", "test", "val"]
 
 # Change this key to use another setup
-SETUP_KEY = "daily_mape_weather_full"
+SETUP_KEY = "daily_mape_week"
 
 ALL_SETUPS = {
-    "default_lstm": Setup(pseudo_id_to_use=1, model_key="default_lstm"),
     "daily_lstm": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="default_lstm"),
     "daily_mape": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="mape"),
-    "daily_mape_weather": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="mape"),
-    "daily_mape_weather_full": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="mape"),
-    "default_linear": Setup(pseudo_id_to_use=1, model_key="default_linear"),
-    "default_dense": Setup(pseudo_id_to_use=1, model_key="default_dense"),
-    "default_conv": Setup(pseudo_id_to_use=1, model_key="default_conv"),
-    "single_id": Setup(pseudo_id_to_use=1),
+    "daily_mape_weather": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="mape",
+                                weather_features=["tavg_mean","snow_mean","wspd_mean","tsun_mean"]),
+    "daily_mape_week": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 7, model_key="mape"),
 }
 
 ACTUAL_SETUP = ALL_SETUPS[SETUP_KEY]

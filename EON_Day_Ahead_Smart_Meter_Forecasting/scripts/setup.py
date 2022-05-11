@@ -60,7 +60,7 @@ class Setup:
                  pseudo_id_to_use=60,
                  features=["day sin", "day cos", "year sin", "year cos"],
                  # weather_features = ["tavg_mean","tavg_std","tmin_mean","tmin_std","tmax_mean","tmax_std","prcp_mean","prcp_std","snow_mean","snow_std","wdir_mean","wdir_std","wspd_mean","wspd_std","wpgt_mean","wpgt_std","pres_mean","pres_std","tsun_mean","tsun_std"],
-                 weather_features=["tavg_mean","snow_mean","wspd_mean","tsun_mean"],
+                 weather_features=[],
                  # num_features=6,
                  data_interval: Timespan = Timespan.HOURLY):
         self.normalization = normalization
