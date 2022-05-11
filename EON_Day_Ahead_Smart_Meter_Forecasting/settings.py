@@ -27,6 +27,8 @@ ALL_SETUPS = {
     "daily_mape_weather": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="mape",
                                 weather_features=["tavg_mean","snow_mean","wspd_mean","tsun_mean"]),
     "daily_mape_week": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 7, model_key="mape"),
+    "submission_hourly": Setup(pseudo_id_to_use=60, n_ahead=24, n_before=24 * 3, model_key="mape",
+                               weather_features=["tavg_mean","snow_mean","wspd_mean","tsun_mean"]),
 }
 
 ACTUAL_SETUP = ALL_SETUPS[SETUP_KEY]
