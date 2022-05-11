@@ -100,18 +100,18 @@ def update_evaluation_file(value):
     plt.savefig(settings.FILE_MAPE_EVALUATION_OVERVIEW)
 
 
-def plot(df_p, df_r):
+def plot(df_p, df_r, counts=24):
     plt.clf()
 
     row = df_p.iloc[0]
     a = row.T
-    data = a[::24].tolist()[1:]
+    data = a[::counts].tolist()[1:]
     plt.plot(data, color='magenta', marker='o', mfc='pink')  # plot the data
     plt.xticks(range(0, len(data) + 1, 1))  # set the tick frequency on x-axis
 
     row = df_r.iloc[0]
     a = row.T
-    data = a[::24].tolist()[1:]
+    data = a[::counts].tolist()[1:]
     plt.plot(data, color='red', marker='x', mfc='pink')  # plot the data
     plt.xticks(range(0, len(data) + 1, 1))  # set the tick frequency on x-axis
 
@@ -136,4 +136,4 @@ print((mape + mape_daily) / 2)
 update_evaluation_file(mape)
 
 plot(df_p, df_r)
-plot(df_p_daily, df_r_daily)
+plot(df_p_daily, df_r_daily, 1)
