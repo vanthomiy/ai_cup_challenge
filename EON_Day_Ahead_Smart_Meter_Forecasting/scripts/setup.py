@@ -30,7 +30,7 @@ class ModelParameter:
                  optimizer=tf.optimizers.Adam(),
                  metrics=[tf.metrics.MeanAbsoluteError()],
                  max_epochs: int = 1000,
-                 patience: int = 10,
+                 patience: int = 3,
                  algorithm: Algorithm = Algorithm.LSTM):
         self.loss = loss
         self.optimizer = optimizer
