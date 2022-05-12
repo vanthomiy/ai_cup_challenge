@@ -19,7 +19,7 @@ DIR_SUBMISSION = os.path.join(DIR_DATA, 'submission\\')
 TEST_TRAIN_VALID = ["train", "test", "val"]
 
 # Change this key to use another setup
-SETUP_KEY = "daily_mape_weather"
+SETUP_KEY = "submission_hourly"
 
 ALL_SETUPS = {
     "daily_lstm": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 3, model_key="default_lstm"),

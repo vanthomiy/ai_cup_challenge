@@ -75,9 +75,9 @@ def create_model(param):
 
 
 def compile_and_fit(model, window, params: ModelParameter):
-    early_stopping = tf.keras.callbacks.EarlyStopping(monitor="mean_absolute_percentage_error", # 'mean_absolute_error',
-                                                      patience=params.patience,
-                                                      mode='min')
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor="loss", # 'mean_absolute_error',
+                                                      patience=params.patience)#,
+                                                      #mode='min')
 
     """model.compile(loss=tf.losses.MeanSquaredError(),
                   optimizer=tf.optimizers.Adam(),
