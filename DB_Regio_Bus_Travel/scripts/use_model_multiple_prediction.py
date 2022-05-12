@@ -28,7 +28,7 @@ def windowing(dfs):
             n = int(offset.days * 24 * (settings.ACTUAL_SETUP.data_interval.value / 2))
             df1 = df.iloc[:-n]
             dfs.append(df1)
-        for pseudo_id in settings.PSEUDO_IDS:
+        for pseudo_id in settings.BUS_STOPS:
             if pseudo_id not in wndw:
                 wndw[pseudo_id] = []
 
@@ -41,7 +41,7 @@ def windowing(dfs):
             features = ["value"]
             features.extend(settings.ACTUAL_SETUP.features)
             features.extend(settings.ACTUAL_SETUP.weather_features)
-            df_id["pseudo_id"] = settings.PSEUDO_IDS.index(pseudo_id)
+            df_id["pseudo_id"] = settings.BUS_STOPS.index(pseudo_id)
 
             wndw[pseudo_id].append(df_id.tail(settings.ACTUAL_SETUP.n_before))
 
@@ -89,11 +89,11 @@ def renormalize_data(df):
 
     df_un = (df * _normalization["std"] + _normalization["mean"])
 
-    for pseudo_id in settings.PSEUDO_IDS:
+    for pseudo_id in settings.BUS_STOPS:
         try:
             count_df = counts.loc[counts["pseudo_id"] == pseudo_id]
             count = count_df["n_dwellings"].iloc[0]
-            df_un.iloc[settings.PSEUDO_IDS.index(pseudo_id)] *= count
+            df_un.iloc[settings.BUS_STOPS.index(pseudo_id)] *= count
         except Exception as ex:
             pass
 
@@ -108,9 +108,9 @@ def create_submission_format(dfs):
         preds_for_id = {}
         for df in dfs:
             predicted_values = df.tail(7 * 24 * int(settings.ACTUAL_SETUP.data_interval.value / 2))
-            preds_for_id["pseudo_id"] = settings.PSEUDO_IDS[id]
+            preds_for_id["pseudo_id"] = settings.BUS_STOPS[id]
             for index, row in predicted_values.iterrows():
-                preds_for_id[row["time"]] = row[settings.PSEUDO_IDS[id]]
+                preds_for_id[row["time"]] = row[settings.BUS_STOPS[id]]
 
         preds.append(preds_for_id)
 
@@ -239,7 +239,7 @@ for i in range(0, iterations):
     for time in predicted_times:
         list_row = {}
         for i in range(0, len(predicted_times[time])):
-            list_row[settings.PSEUDO_IDS[i]] = predicted_times[time][i]
+            list_row[settings.BUS_STOPS[i]] = predicted_times[time][i]
 
         list_row["time"] = time
         # Calculate seconds per day for the sin and cos functions with 24 hours/day * 60 minutes/hour * 60 seconds/minute
