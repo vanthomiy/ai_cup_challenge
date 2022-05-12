@@ -33,6 +33,8 @@ ALL_SETUPS = {
 
     "submission_hourly": Setup(pseudo_id_to_use=60, n_ahead=24, n_before=24 * 3, model_key="mape",
                                weather_features=["tavg_mean", "snow_mean", "wspd_mean", "tsun_mean"]),
+
+    "submission_hourly_without_weather": Setup(pseudo_id_to_use=60, n_ahead=24, n_before=24 * 3, model_key="mape"),
 }
 
 ACTUAL_SETUP = ALL_SETUPS[SETUP_KEY]
