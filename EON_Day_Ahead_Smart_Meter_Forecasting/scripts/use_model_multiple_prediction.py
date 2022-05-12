@@ -26,7 +26,10 @@ def windowing(dfs):
         if len(dfs) <= time:
             df = pd.read_csv(settings.FILE_TIME_WINDOW_X(time))
             n = int(offset.days * 24 * (settings.ACTUAL_SETUP.data_interval.value / 2))
-            df1 = df.iloc[:-n]
+            if n != 0:
+                df1 = df.iloc[:-n]
+            else:
+                df1 = df
             dfs.append(df1)
         for pseudo_id in settings.PSEUDO_IDS:
             if pseudo_id not in wndw:
@@ -163,7 +166,7 @@ def create_submission_daily(df_hourly):
 def load_weather_data(offset):
     # startdate
     date = datetime(2017, 1, 1).date()
-    days = timedelta(days=38) - offset
+    days = timedelta(days=38) - (offset + timedelta(days=int(settings.ACTUAL_SETUP.n_before / (24 * settings.ACTUAL_SETUP.data_interval.value /2))))
 
     start_date = date + days
 
@@ -174,7 +177,7 @@ def load_weather_data(offset):
     # exclude columns
     all_days = []
     for window in range(0, settings.ACTUAL_SETUP.time_windows_to_use):
-        days = [str(start_date + timedelta(days=days + window * 45)) for days in range(0, 7)]
+        days = [str(start_date + timedelta(days=days + window * 45)) for days in range(0, 7 + int(settings.ACTUAL_SETUP.n_before / (24 / settings.ACTUAL_SETUP.data_interval.value / 2)))]
         days = list(dict.fromkeys(days))
         all_days.extend(days)
 
@@ -199,7 +202,7 @@ def load_weather_data(offset):
 
 # create windows and predictions for each time
 
-offset = timedelta(days=7)  # timedelta(days=0)
+offset = timedelta(days=0)  # timedelta(days=0)
 
 results = []
 

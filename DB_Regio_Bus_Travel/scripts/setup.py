@@ -19,9 +19,8 @@ class Normalization(Enum):
 
 
 class Timespan(Enum):
-    HALF_HOURLY = 1
-    HOURLY = 2
-    DAILY = 48
+    HOURLY = 1
+    DAILY = 24
 
 
 class ModelParameter:
@@ -30,7 +29,7 @@ class ModelParameter:
                  optimizer=tf.optimizers.Adam(),
                  metrics=[tf.metrics.MeanAbsoluteError()],
                  max_epochs: int = 1000,
-                 patience: int = 10,
+                 patience: int = 3,
                  algorithm: Algorithm = Algorithm.LSTM):
         self.loss = loss
         self.optimizer = optimizer
@@ -56,10 +55,9 @@ class Setup:
                  normalization: Normalization = Normalization.MEAN,
                  n_ahead: int = 24,
                  n_before: int = 24,
-                 time_windows_to_use=21,
-                 pseudo_id_to_use=60,
+                 time_windows_to_use=12,
+                 bus_stops_to_us=1310,
                  features=["day sin", "day cos", "year sin", "year cos"],
-                 # weather_features = ["tavg_mean","tavg_std","tmin_mean","tmin_std","tmax_mean","tmax_std","prcp_mean","prcp_std","snow_mean","snow_std","wdir_mean","wdir_std","wspd_mean","wspd_std","wpgt_mean","wpgt_std","pres_mean","pres_std","tsun_mean","tsun_std"],
                  weather_features=[],
                  # num_features=6,
                  data_interval: Timespan = Timespan.HOURLY):
@@ -83,7 +81,7 @@ class Setup:
         """The count of the features"""
         self.time_windows_to_use = time_windows_to_use
         """How much of the 21 data windows should be used"""
-        self.pseudo_id_to_use = pseudo_id_to_use
+        self.bus_stops_to_us = bus_stops_to_us
         """How much of the households should be used (value between 1 and 60)"""
         self.normalization_name = f"normierung_{str(self.normalization.name).lower()}_" \
                                   f"fc_{str(self.num_features)}_"

@@ -16,12 +16,12 @@ def load_data() -> (pd.DataFrame, pd.DataFrame):
     :return: Two DataFrames which contain the data.
     """
 
-    df1 = pd.read_csv(settings.FILE_TRAIN_DATA, index_col='pseudo_id')
-    df2 = pd.read_csv(settings.FILE_COUNTS_DATA, index_col='pseudo_id')
+    df1 = pd.read_csv(settings.FILE_REGULAR_TRAVEL, index_col='EZone')
+    df2 = pd.read_csv(settings.FILE_REGULAR_ROUTE_DEFINITION, index_col='route')
     return df1, df2
 
 
-def clean_train_dataset(train: pd.DataFrame, counts: pd.DataFrame) -> pd.DataFrame:
+def adjust_zone_name(train: pd.DataFrame, counts: pd.DataFrame) -> pd.DataFrame:
     """
     Divide every value in the train DataFrame with the amount of dwellings fot the value in oder to get the average value for each cell.
 
@@ -29,40 +29,16 @@ def clean_train_dataset(train: pd.DataFrame, counts: pd.DataFrame) -> pd.DataFra
     :param counts: The counts.csv dataset as a DataFrame, provided by the function load_data.
     :return: The cleaned train dataset as DataFrame.
     """
+    dfl = pd.DataFrame()
 
-    df = train.copy()
-    # Loop though every row of the train DataFrame
-    for index, _ in df.iterrows():
-        # Get the amount of dwellings for the current row index
-        factor = counts.loc[index]['n_dwellings']
-        # Divide the values of the train row by the factor
-        df.loc[index] = df.loc[index].div(factor)
-    return df
+    zones = train.index.tolist()
 
+    dfl["zones"] = [int(zone.split()[0]) for zone in zones]
+    dfl.index = [datetime.strptime(row["date"] + " " + str(row["hour"]), '%Y-%m-%d %H') for index, row in
+                 train.iterrows()]
+    dfl["passangers"] = train["Passengers"].tolist()
 
-def test_clean_train_dataset(train: pd.DataFrame, cleaned: pd.DataFrame):
-    """
-    Test if the division performed in the function clean_train_dataset is performed properly.
-
-    :param train: The train.csv dataset as a DataFrame, provided by the function load_data.
-    :param cleaned: The train_cleaned dataset as a DataFrame, provided by the function clean_train_dataset.
-    """
-
-    id1 = "0x16cb02173ebf3059efdc97fd1819f14a2"
-    id3 = "0x1612e4cbe3b1b85c3dbcaeaa504ee8424"
-    factor_id1 = 288
-    factor_id3 = 38
-
-    train_sum_row1 = train.loc[id1].sum()
-    cleaned_sum_row1 = cleaned.loc[id1].sum()
-    cleaned_sum_row1 = cleaned_sum_row1 * factor_id1
-
-    train_sum_row3 = train.loc[id3].sum()
-    cleaned_sum_row3 = cleaned.loc[id3].sum()
-    cleaned_sum_row3 = cleaned_sum_row3 * factor_id3
-
-    assert train_sum_row1 == cleaned_sum_row1, "There is something wrong in clean_train_dataset"
-    assert train_sum_row3 == cleaned_sum_row3, "There is something wrong in clean_train_dataset"
+    return dfl
 
 
 def normalize_data_NONE():
@@ -85,12 +61,14 @@ def normalize_data_MEAN(train_transposed: pd.DataFrame) -> (pd.DataFrame, dict):
 
     df = train_transposed.copy()
 
+    df = df.dropna(axis=0)
+
     # Calculate the normalization values and save them in a dictionary
     _normalization = {
-        "mean": df.to_numpy().mean(),
-        "std": df.to_numpy().std()
+        "mean": df["passangers"].mean(),
+        "std": df["passangers"].std()
     }
-    df = (df - _normalization["mean"]) / _normalization["std"]
+    df["passangers"] = (df["passangers"] - _normalization["mean"]) / _normalization["std"]
     return df, _normalization
 
 
@@ -130,15 +108,28 @@ def split_dataset(df: pd.DataFrame) -> list:
     :param df: The normalized dataset as a Dataframe, provided by one of the normalization functions.
     :return: A list containing the split dataset.
     """
+    df_new = None
+
+    # split dataset by busstop
+    for bus_stop in settings.BUS_STOPS:
+        df_stop = df[df["zones"] == int(bus_stop)]
+
+
+
+        if df_new is None:
+            index = df.index[df['zones'] == bus_stop].tolist()
+            df_new = pd.DataFrame(index=index)
+
+        df_new[bus_stop] = df_stop["passangers"]
 
     # Split factor which is defined by days * hours per day * data per hour / the amount of the data per interval tbu
-    split_by = int(38 * 24 * 2 / settings.ACTUAL_SETUP.data_interval.value)
+    split_by = int(24 * 7 * 3 / settings.ACTUAL_SETUP.data_interval.value)
     temp_lst_split_dataset = []
-    amount_of_times = len(df.index)
+    amount_of_times = len(df_new.index)
     # Loop through every timespan and split the dataset at the given index
     for i in range(0, int(amount_of_times / split_by)):
         temp_lst_split_dataset.append(
-            df.iloc[i * split_by: (i + 1) * split_by]
+            df_new.iloc[i * split_by: (i + 1) * split_by]
         )
     return temp_lst_split_dataset
 
@@ -166,9 +157,9 @@ def create_and_save_data_windows(lst_split_dataset: list, _amplitude: int, _offs
         # Loop through every row in the current timespan dataframe
         for index, row in timespan.iterrows():
             # Parse the date from the rows time label
-            date_time = datetime.strptime(index, '%Y-%m-%d %H:%M:%S')
+            # date_time = datetime.strptime(index, '%Y-%m-%d %H:%M:%S')
             # Get the timestamp in seconds from the date_time
-            timestamp_s = int(round(date_time.timestamp()))
+            timestamp_s = int(round(index.timestamp()))
             # Create a dictionary which contains the daily and annual sin and cos values for the current timestamp
             dict_timestamp_data = {"day sin": _amplitude * np.sin(timestamp_s * (np.pi / seconds_per_day)) + _offset,
                                    "day cos": _amplitude * np.cos(timestamp_s * (np.pi / seconds_per_day)) + _offset,
@@ -176,8 +167,8 @@ def create_and_save_data_windows(lst_split_dataset: list, _amplitude: int, _offs
                                    'year cos': _amplitude * np.cos(timestamp_s * (np.pi / seconds_per_year)) + _offset}
 
             # Add the existing data for the current row and every id to the temporary data dictionary
-            for pseudo_id in settings.PSEUDO_IDS:
-                dict_timestamp_data[pseudo_id] = row[pseudo_id]
+            for bus_stop in settings.BUS_STOPS:
+                dict_timestamp_data[bus_stop] = row[bus_stop]
 
             for weather_data in settings.ACTUAL_SETUP.weather_features:
                 dict_timestamp_data[weather_data] = row[weather_data]
@@ -275,19 +266,13 @@ def add_weather_data(df):
 
 
 # Load the data from the csv files
-train_df, counts_df = load_data()
+train_df, bus_stops_df = load_data()
 
 # Clean the data with the amount of dwelling per id
-train_df_cleaned = clean_train_dataset(train=train_df, counts=counts_df)
-
-# Test the cleaning function
-test_clean_train_dataset(train=train_df, cleaned=train_df_cleaned)
-
-# Transpose the dataset for the next steps
-train_df_cleaned_transposed = train_df_cleaned.T
+train_df_cleaned = adjust_zone_name(train=train_df, counts=bus_stops_df)
 
 # Adjust the time intervall of the data [half-hourly, hourly and daily]
-train_df_cleaned_transposed_interval = adjust_time_interval(train_df_cleaned_transposed)
+train_df_cleaned_transposed_interval = adjust_time_interval(train_df_cleaned)
 
 # Introduce necessary variables and predefine them as None
 amplitude = None

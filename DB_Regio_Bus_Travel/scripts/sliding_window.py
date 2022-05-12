@@ -14,7 +14,11 @@ def load_time_window_data():
 
     for time in range(0, settings.ACTUAL_SETUP.time_windows_to_use):
         df = pd.read_csv(settings.FILE_TIME_WINDOW_X(time))
-        for pseudo_id in settings.PSEUDO_IDS:
+        for pseudo_id in settings.BUS_STOPS:
+            pseudo_id = str(pseudo_id)
+            if df[pseudo_id].isnull().values.any():
+                continue
+
             features = [pseudo_id]
             features.extend(settings.ACTUAL_SETUP.features)
             features.extend(settings.ACTUAL_SETUP.weather_features)
@@ -23,7 +27,7 @@ def load_time_window_data():
             features = ["value"]
             features.extend(settings.ACTUAL_SETUP.features)
             features.extend(settings.ACTUAL_SETUP.weather_features)
-            df_id["pseudo_id"] = settings.PSEUDO_IDS.index(pseudo_id)
+            df_id["pseudo_id"] = settings.BUS_STOPS.index(int(pseudo_id))
 
             # df is list of all values
             n = len(df_id)
