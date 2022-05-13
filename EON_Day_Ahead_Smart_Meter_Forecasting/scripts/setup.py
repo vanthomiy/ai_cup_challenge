@@ -46,6 +46,7 @@ ALL_MODELS = {
     "default_dense": ModelParameter(algorithm=Algorithm.DENSE),
     "default_conv": ModelParameter(algorithm=Algorithm.CONV),
     "mape": ModelParameter(metrics=[tf.metrics.MeanAbsolutePercentageError()]),
+    "mae": ModelParameter(metrics=[tf.metrics.MeanAbsoluteError()]),
     "fast_lane": ModelParameter(max_epochs=3),
 }
 
