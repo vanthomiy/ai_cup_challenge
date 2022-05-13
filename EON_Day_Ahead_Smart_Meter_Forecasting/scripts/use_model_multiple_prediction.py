@@ -168,24 +168,33 @@ def load_weather_data(offset):
     date = datetime(2017, 1, 1).date()
     days = timedelta(days=38) - (offset + timedelta(days=int(settings.ACTUAL_SETUP.n_before / (24 * settings.ACTUAL_SETUP.data_interval.value /2))))
 
-    start_date = date + days
+    # start_date = date + days
+    start_date = datetime(2017, 1, 1).date()
+    end_date = datetime(2019, 9, 10).date()
 
     # load the weather data
     weather_df = pd.read_csv(settings.FILE_WEATHER_DATA)
 
+    """
     # make the dataset smaller. only columns and rows that are needed
     # exclude columns
     all_days = []
-    for window in range(0, settings.ACTUAL_SETUP.time_windows_to_use):
+    for window in range(0, settings.ACTUAL_SETUP.time_windows_to_use - 1):
         days = [str(start_date + timedelta(days=days + window * 45)) for days in range(0, 7 + int(settings.ACTUAL_SETUP.n_before / (24 / settings.ACTUAL_SETUP.data_interval.value / 2)))]
         days = list(dict.fromkeys(days))
         all_days.extend(days)
+    """
 
     # condition mask
-    mask = weather_df['time'].isin(all_days)
+    min_index = weather_df[weather_df['time'] == str(start_date)].index[0]
+    max_index = weather_df[weather_df['time'] == str(end_date)].index[0]
+    # mask = weather_df['time'].isin(all_days)
+    # time = datetime.strptime(t, '%Y-%m-%d')
 
     # new dataframe with selected rows
-    df_wr = pd.DataFrame(weather_df[mask])
+    # df_wr = pd.DataFrame(weather_df[mask])
+    df_wr = weather_df[min_index:max_index]
+    time_df = df_wr.pop("time")
 
     # load normed data
     with open(settings.FILE_NORMALIZATION_DATA_WEATHER, 'rb') as file:
@@ -195,7 +204,8 @@ def load_weather_data(offset):
 
     df_wr = df_wr.reset_index(drop=True)
 
-    df_wr["time"] = all_days
+    # df_wr["time"] = all_days
+    df_wr["time"] = time_df.tolist()
 
     return df_wr
 
@@ -264,7 +274,10 @@ for i in range(0, iterations):
         list_row['year sin'] = _amplitude * np.sin(timestamp_s * (np.pi / seconds_per_year)) + _offset
         list_row['year cos'] = _amplitude * np.cos(timestamp_s * (np.pi / seconds_per_year)) + _offset
 
-        row = wather_data[wather_data["time"] == str(date_time.date())].iloc[0]
+        try:
+            row = wather_data[wather_data["time"] == str(date_time.date())].iloc[0]
+        except Exception as ex:
+            print(ex)
         for weather_features in settings.ACTUAL_SETUP.weather_features:
             list_row[weather_features] = row[weather_features]
 
