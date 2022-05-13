@@ -135,11 +135,17 @@ def split_dataset(df: pd.DataFrame) -> list:
     split_by = int(38 * 24 * 2 / settings.ACTUAL_SETUP.data_interval.value)
     temp_lst_split_dataset = []
     amount_of_times = len(df.index)
+    actual_index = 0
     # Loop through every timespan and split the dataset at the given index
     for i in range(0, int(amount_of_times / split_by)):
         temp_lst_split_dataset.append(
             df.iloc[i * split_by: (i + 1) * split_by]
         )
+        actual_index = (i + 1) * split_by
+
+    temp = df.iloc[actual_index:]
+    if temp.size > 1:
+        temp_lst_split_dataset.append(temp)
     return temp_lst_split_dataset
 
 

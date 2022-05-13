@@ -57,7 +57,7 @@ class Setup:
                  normalization: Normalization = Normalization.MEAN,
                  n_ahead: int = 24,
                  n_before: int = 24,
-                 time_windows_to_use=21,
+                 time_windows_to_use=22,
                  pseudo_id_to_use=60,
                  features=["day sin", "day cos", "year sin", "year cos"],
                  # weather_features = ["tavg_mean","tavg_std","tmin_mean","tmin_std","tmax_mean","tmax_std","prcp_mean","prcp_std","snow_mean","snow_std","wdir_mean","wdir_std","wspd_mean","wspd_std","wpgt_mean","wpgt_std","pres_mean","pres_std","tsun_mean","tsun_std"],
