@@ -25,10 +25,14 @@ def windowing(dfs):
     for time in range(0, settings.ACTUAL_SETUP.time_windows_to_use):
         if len(dfs) <= time:
             df = pd.read_csv(settings.FILE_TIME_WINDOW_X(time))
-            n = int(offset.days * 24 * (settings.ACTUAL_SETUP.data_interval.value / 2))
+            n = int(offset.days * 24 * settings.ACTUAL_SETUP.data_interval.value)
             df1 = df.iloc[:-n]
             dfs.append(df1)
-        for pseudo_id in settings.BUS_STOPS:
+        for pseudo_id_int in settings.BUS_STOPS:
+            pseudo_id = str(pseudo_id_int)
+            if dfs[time][pseudo_id].isnull().values.any():
+                continue
+
             if pseudo_id not in wndw:
                 wndw[pseudo_id] = []
 
@@ -41,7 +45,8 @@ def windowing(dfs):
             features = ["value"]
             features.extend(settings.ACTUAL_SETUP.features)
             features.extend(settings.ACTUAL_SETUP.weather_features)
-            df_id["pseudo_id"] = settings.BUS_STOPS.index(pseudo_id)
+            id = settings.BUS_STOPS.index(pseudo_id_int)
+            df_id["pseudo_id"] = id
 
             wndw[pseudo_id].append(df_id.tail(settings.ACTUAL_SETUP.n_before))
 
@@ -67,7 +72,7 @@ def predict_values(mdl, wndw):
             predictions = mdl.predict(all_inputs)
 
             for pred in predictions[0]:
-                datetime_obj = datetime_obj + timedelta(hours=0, minutes=settings.ACTUAL_SETUP.data_interval.value * 30)
+                datetime_obj = datetime_obj + timedelta(hours=0, minutes=settings.ACTUAL_SETUP.data_interval.value * 60)
                 datetime_string = str(datetime_obj)
                 result_for_id[datetime_string] = pred[0]
 
@@ -85,17 +90,10 @@ def renormalize_data(df):
     ids = df.pop("pseudo_id")
 
     # load all counts
-    counts = pd.read_csv(settings.FILE_COUNTS_DATA)
+    # counts = pd.read_csv(settings.FILE_COUNTS_DATA)
 
     df_un = (df * _normalization["std"] + _normalization["mean"])
 
-    for pseudo_id in settings.BUS_STOPS:
-        try:
-            count_df = counts.loc[counts["pseudo_id"] == pseudo_id]
-            count = count_df["n_dwellings"].iloc[0]
-            df_un.iloc[settings.BUS_STOPS.index(pseudo_id)] *= count
-        except Exception as ex:
-            pass
 
     df_un.insert(0, 'pseudo_id', ids)
     return df_un
@@ -104,10 +102,10 @@ def renormalize_data(df):
 def create_submission_format(dfs):
     preds = []
 
-    for id in range(0, settings.ACTUAL_SETUP.pseudo_id_to_use):
+    for id in range(0, settings.ACTUAL_SETUP.bus_stops_to_us):
         preds_for_id = {}
         for df in dfs:
-            predicted_values = df.tail(7 * 24 * int(settings.ACTUAL_SETUP.data_interval.value / 2))
+            predicted_values = df.tail(7 * 24 * settings.ACTUAL_SETUP.data_interval.value)
             preds_for_id["pseudo_id"] = settings.BUS_STOPS[id]
             for index, row in predicted_values.iterrows():
                 preds_for_id[row["time"]] = row[settings.BUS_STOPS[id]]
@@ -205,13 +203,13 @@ results = []
 
 model = load_model()
 
-wather_data = load_weather_data(offset)
+# wather_data = load_weather_data(offset)
 
 dfs = None
 
 result = None
 # calculate how often we have to predict
-iterations = int((7 * 24) / (settings.ACTUAL_SETUP.n_ahead / (settings.ACTUAL_SETUP.data_interval.value / 2)))
+iterations = int((7 * 24) / (settings.ACTUAL_SETUP.n_ahead / settings.ACTUAL_SETUP.data_interval.value))
 
 for i in range(0, iterations):
     # create new window
@@ -234,7 +232,7 @@ for i in range(0, iterations):
             predicted_times[time].append(id[time])
 
     actual_window = 0
-    counts = (settings.ACTUAL_SETUP.n_ahead / (settings.ACTUAL_SETUP.data_interval.value / 2))
+    counts = (settings.ACTUAL_SETUP.n_ahead / settings.ACTUAL_SETUP.data_interval.value)
     actual_count = 0
     for time in predicted_times:
         list_row = {}
@@ -261,9 +259,9 @@ for i in range(0, iterations):
         list_row['year sin'] = _amplitude * np.sin(timestamp_s * (np.pi / seconds_per_year)) + _offset
         list_row['year cos'] = _amplitude * np.cos(timestamp_s * (np.pi / seconds_per_year)) + _offset
 
-        row = wather_data[wather_data["time"] == str(date_time.date())].iloc[0]
-        for weather_features in settings.ACTUAL_SETUP.weather_features:
-            list_row[weather_features] = row[weather_features]
+        # row = wather_data[wather_data["time"] == str(date_time.date())].iloc[0]
+        # for weather_features in settings.ACTUAL_SETUP.weather_features:
+        #    list_row[weather_features] = row[weather_features]
 
         dfs[actual_window].loc[len(dfs[actual_window])] = list_row
 
