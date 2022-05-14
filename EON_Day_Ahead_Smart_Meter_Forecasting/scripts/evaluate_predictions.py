@@ -73,15 +73,17 @@ def find_data_for_prediction_daily(df_r):
     return df_p_daily, df_rcr_daily
 
 
-def update_evaluation_file(value):
+def update_evaluation_file(value_hourly, value_daily):
     # Store values in the csv file
     df = pd.read_csv(settings.FILE_MAPE_EVALUATION_DATA)
 
     if settings.ACTUAL_SETUP.model_name in df["setup"].unique():
         index = df.loc[df['setup'] == settings.ACTUAL_SETUP.model_name].index[0]
-        df.at[index, 'value'] = value
+        df.at[index, 'value_hourly'] = value_hourly
+        df.at[index, 'value_daily'] = value_daily
     else:
-        df.loc[len(df.index)] = [settings.ACTUAL_SETUP.model_name, value]
+        df.loc[len(df.index)] = [settings.ACTUAL_SETUP.model_name, value_hourly, value_daily]
+        df.loc[len(df.index)] = [settings.ACTUAL_SETUP.model_name, value_hourly, value_daily]
 
     df.to_csv(settings.FILE_MAPE_EVALUATION_DATA, index=False)
 
@@ -91,7 +93,7 @@ def update_evaluation_file(value):
     width = 0.3
 
     metric_index = 1
-    val_mae = df["value"].tolist()
+    val_mae = df["value_daily"].tolist()
 
     plt.bar(x - 0.17, val_mae, width, label='Validation')
     plt.xticks(ticks=x, labels=df["setup"].tolist(), rotation=45)
@@ -118,22 +120,22 @@ def plot(df_p, df_r, counts=24):
     plt.ylabel('data')  # set the label for y axis
     plt.xlabel('index')  # set the label for x-axis
     plt.title("Plotting a list")  # set the title of the graph
-    plt.show()  # display the graph
+    # plt.show()  # display the graph
     plt.savefig(settings.FILE_MAPE_EVALUATION_TIMESERIES)
 
+def start():
+    df_p, df_r = find_data_for_prediction()
+    df_p_daily, df_r_daily = find_data_for_prediction_daily(df_r)
 
-df_p, df_r = find_data_for_prediction()
-df_p_daily, df_r_daily = find_data_for_prediction_daily(df_r)
+    mape = evaluate(df_p, df_r)
+    mape_daily = evaluate(df_p_daily, df_r_daily)
 
-mape = evaluate(df_p, df_r)
-mape_daily = evaluate(df_p_daily, df_r_daily)
+    print(mape)
+    print(mape_daily)
 
-print(mape)
-print(mape_daily)
+    print((mape + mape_daily) / 2)
 
-print((mape + mape_daily) / 2)
+    update_evaluation_file(mape, mape_daily)
 
-update_evaluation_file(mape)
-
-plot(df_p, df_r)
-plot(df_p_daily, df_r_daily, 1)
+    plot(df_p, df_r)
+    plot(df_p_daily, df_r_daily, 1)

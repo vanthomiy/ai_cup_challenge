@@ -29,10 +29,12 @@ class ModelParameter:
                  loss=tf.losses.MeanSquaredError(),
                  optimizer=tf.optimizers.Adam(),
                  metrics=[tf.metrics.MeanAbsoluteError()],
+                 stop_loss="mean_absolute_error",
                  max_epochs: int = 1000,
                  patience: int = 3,
                  algorithm: Algorithm = Algorithm.LSTM):
         self.loss = loss
+        self.stop_loss = stop_loss
         self.optimizer = optimizer
         self.metrics = metrics
         self.max_epochs = max_epochs
@@ -41,13 +43,8 @@ class ModelParameter:
 
 
 ALL_MODELS = {
-    "default_lstm": ModelParameter(algorithm=Algorithm.LSTM),
-    "default_linear": ModelParameter(algorithm=Algorithm.LINEAR),
-    "default_dense": ModelParameter(algorithm=Algorithm.DENSE),
-    "default_conv": ModelParameter(algorithm=Algorithm.CONV),
-    "mape": ModelParameter(metrics=[tf.metrics.MeanAbsolutePercentageError()]),
-    "mae": ModelParameter(metrics=[tf.metrics.MeanAbsoluteError()]),
-    "fast_lane": ModelParameter(max_epochs=3),
+    "mape": ModelParameter(stop_loss="mean_absolute_percentage_error", metrics=[tf.metrics.MeanAbsolutePercentageError()]),
+    "mae": ModelParameter(stop_loss="mean_absolute_error", metrics=[tf.metrics.MeanAbsoluteError()]),
 }
 
 

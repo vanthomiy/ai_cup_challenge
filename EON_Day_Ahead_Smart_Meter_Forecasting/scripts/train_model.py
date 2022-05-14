@@ -75,7 +75,7 @@ def create_model(param):
 
 
 def compile_and_fit(model, window, params: ModelParameter):
-    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='mean_absolute_error',
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor=params.stop_loss,
                                                       patience=params.patience,
                                                       mode='min')
 
@@ -112,22 +112,22 @@ def plot_history(hist):
 
 
 
+def start():
 
+    # load the multi window
+    multi_window = load_sliding_window()
 
-# load the multi window
-multi_window = load_sliding_window()
+    # pre load the model settings
+    params = settings.ACTUAL_SETUP.model_parameters
 
-# pre load the model settings
-params = settings.ACTUAL_SETUP.model_parameters
+    # create the model
+    model = create_model(params)
 
-# create the model
-model = create_model(params)
+    # fit the model and get the history
+    history = compile_and_fit(model, multi_window, params)
 
-# fit the model and get the history
-history = compile_and_fit(model, multi_window, params)
+    # save the model to use it later
+    save_model(model)
 
-# save the model to use it later
-save_model(model)
-
-# plot the model train history
-plot_history(history)
+    # plot the model train history
+    plot_history(history)

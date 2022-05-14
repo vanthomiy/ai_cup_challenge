@@ -22,7 +22,7 @@ TEST_TRAIN_VALID = ["train", "test", "val"]
 SETUP_KEY = "test"
 
 ALL_SETUPS = {
-    "test": Setup(bus_stops_to_us=1, n_ahead=24, n_before=24 * 3, model_key="fast_lane"),
+    "test": Setup(n_ahead=24, n_before=24 * 3, model_key="fast_lane"),
     "daily_mape": Setup(bus_stops_to_us=1, n_ahead=24, n_before=24 * 3, model_key="mape"),
     "daily_mape_weather": Setup(bus_stops_to_us=1, n_ahead=24, n_before=24 * 3, model_key="mape",
                                 weather_features=["tavg_mean", "snow_mean", "wspd_mean", "tsun_mean"]),
@@ -85,7 +85,18 @@ FILE_MAPE_EVALUATION_OVERVIEW = os.path.join(DIR_VALIDATION, f"mape_evaluation.p
 FILE_EVALUATION_TIMESERIES = os.path.join(DIR_VALIDATION, f"{ACTUAL_SETUP.sliding_window_name}timeseries.png")
 FILE_MAPE_EVALUATION_TIMESERIES = os.path.join(DIR_VALIDATION, f"{ACTUAL_SETUP.sliding_window_name}timeseries_mape.png")
 
-BUS_STOPS = list(set(pd.read_csv(FILE_BUS_STOP)["Nummer"]))
+
+def load_bus_stops():
+    bs = pd.read_csv(FILE_BUS_STOP)
+    stops = {}
+    for index, row in bs.iterrows():
+        num = str(row["Nummer"])
+        stops[num] = row["Name"]
+    return stops
+
+
+BUS_STOPS_DICT = load_bus_stops()
+BUS_STOPS = list(BUS_STOPS_DICT.keys())
 
 FILE_SUBMISSION_NORMED_DATA = os.path.join(DIR_SUBMISSION, f"{ACTUAL_SETUP.sliding_window_name}submission_normed.csv")
 FILE_SUBMISSION_DATA = os.path.join(DIR_SUBMISSION, f"{ACTUAL_SETUP.sliding_window_name}submission_hourly.csv")

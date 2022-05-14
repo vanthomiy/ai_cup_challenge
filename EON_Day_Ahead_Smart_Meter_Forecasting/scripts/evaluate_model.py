@@ -109,19 +109,20 @@ def plot(data, model=None, plot_col='value', max_subplots=3):
     plt.savefig(settings.FILE_EVALUATION_TIMESERIES)
 
 
-keys = ["val", "test"]
+def start():
+    keys = ["val", "test"]
 
-# load the model
-model = load_model()
+    # load the model
+    model = load_model()
 
-# load the data
-data = load_sliding_window()
+    # load the data
+    data = load_sliding_window()
 
-# evaluate the model
-performance = evaluate_model(model, data, keys)
+    # evaluate the model
+    performance = evaluate_model(model, data, keys)
 
-# store the values in a file and also update the overall picture
-update_evaluation_file(performance, keys)
+    # store the values in a file and also update the overall picture
+    update_evaluation_file(performance, keys)
 
-# create predictions and store them as pictures
-plot(data=data["test"], model=model)
+    # create predictions and store them as pictures
+    plot(data=data["test"], model=model)

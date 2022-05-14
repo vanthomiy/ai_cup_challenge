@@ -101,22 +101,33 @@ def renormalize_data(df):
 
 def create_submission_format(dfs):
     preds = []
+    for df in dfs:
+        predicted_values = df.tail(7 * 24 * settings.ACTUAL_SETUP.data_interval.value)
+        for day in range(0, 7):
+            predicted_values_days = predicted_values[day*24:(day+1) * 24]
+            for id in range(0, settings.ACTUAL_SETUP.bus_stops_to_us):
+                bus_id = str(settings.BUS_STOPS[id])
+                if bus_id not in predicted_values_days.columns or predicted_values_days[bus_id].isnull().values.any():
+                    continue
 
-    for id in range(0, settings.ACTUAL_SETUP.bus_stops_to_us):
-        preds_for_id = {}
-        for df in dfs:
-            predicted_values = df.tail(7 * 24 * settings.ACTUAL_SETUP.data_interval.value)
-            preds_for_id["pseudo_id"] = settings.BUS_STOPS[id]
-            for index, row in predicted_values.iterrows():
-                preds_for_id[row["time"]] = row[settings.BUS_STOPS[id]]
+                for index, row in predicted_values_days.iterrows():
+                    datetime_obj = datetime.strptime(row["time"], '%Y-%m-%d %H:%M:%S')
 
-        preds.append(preds_for_id)
+                    name = f"{str(bus_id)} - {settings.BUS_STOPS_DICT[str(bus_id)]}"
+
+                    prediction = {
+                        "date": datetime_obj.date(),
+                        "EZone": name,
+                        "hour": datetime_obj.hour,
+                        "Passengers": row[bus_id]
+                    }
+                    preds.append(prediction)
 
     df = pd.DataFrame(preds)
     df.to_csv(settings.FILE_SUBMISSION_NORMED_DATA, index=False)
 
-    df = renormalize_data(df)
-    df.to_csv(settings.FILE_SUBMISSION_DATA, index=False)
+    # df = renormalize_data(df)
+    # df.to_csv(settings.FILE_SUBMISSION_DATA, index=False)
 
     return df
     # also save the un-normed values

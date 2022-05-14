@@ -56,7 +56,7 @@ class Setup:
                  n_ahead: int = 24,
                  n_before: int = 24,
                  time_windows_to_use=12,
-                 bus_stops_to_us=1310,
+                 bus_stops_to_us=1309,
                  features=["day sin", "day cos", "year sin", "year cos"],
                  weather_features=[],
                  # num_features=6,

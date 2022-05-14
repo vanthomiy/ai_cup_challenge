@@ -1,1 +1,2 @@
 setup,test,test_loss,val,val_loss
+normierung_mean_fc_7__nahead_24_nbefore_72_datainterval_timespan.hourly__model_mae_,0.30028408765792847,0.34157735109329224,0.3051205575466156,0.3406318426132202

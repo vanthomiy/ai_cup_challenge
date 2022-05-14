@@ -79,15 +79,16 @@ def make_dataset(data_list):
     return ds
 
 
-# load the data
-data_dict = load_time_window_data()
+def start():
+    # load the data
+    data_dict = load_time_window_data()
 
-# windowed dict
-windowed_data = {}
+    # windowed dict
+    windowed_data = {}
 
-# create windowed data for train test and validation
-for value in settings.TEST_TRAIN_VALID:
-    data = make_dataset(data_dict[value])
+    # create windowed data for train test and validation
+    for value in settings.TEST_TRAIN_VALID:
+        data = make_dataset(data_dict[value])
 
-    tf.data.experimental.save(
-        data, settings.FILE_WINDOWED_DATA(value))
+        tf.data.experimental.save(
+            data, settings.FILE_WINDOWED_DATA(value))

@@ -280,57 +280,59 @@ def add_weather_data(df):
     # exclude all rows that are not necessary
 
 
-# Load the data from the csv files
-train_df, counts_df = load_data()
+def start():
 
-# Clean the data with the amount of dwelling per id
-train_df_cleaned = clean_train_dataset(train=train_df, counts=counts_df)
+    # Load the data from the csv files
+    train_df, counts_df = load_data()
 
-# Test the cleaning function
-test_clean_train_dataset(train=train_df, cleaned=train_df_cleaned)
+    # Clean the data with the amount of dwelling per id
+    train_df_cleaned = clean_train_dataset(train=train_df, counts=counts_df)
 
-# Transpose the dataset for the next steps
-train_df_cleaned_transposed = train_df_cleaned.T
+    # Test the cleaning function
+    test_clean_train_dataset(train=train_df, cleaned=train_df_cleaned)
 
-# Adjust the time intervall of the data [half-hourly, hourly and daily]
-train_df_cleaned_transposed_interval = adjust_time_interval(train_df_cleaned_transposed)
+    # Transpose the dataset for the next steps
+    train_df_cleaned_transposed = train_df_cleaned.T
 
-# Introduce necessary variables and predefine them as None
-amplitude = None
-offset = None
-train_df_normalized = None
-normalization = None
+    # Adjust the time intervall of the data [half-hourly, hourly and daily]
+    train_df_cleaned_transposed_interval = adjust_time_interval(train_df_cleaned_transposed)
 
-# Choose normalization method
-if settings.ACTUAL_SETUP.normalization == Normalization.NONE:
-    train_df_normalized = normalize_data_NONE()
-elif settings.ACTUAL_SETUP.normalization == Normalization.MEAN:
-    train_df_normalized, normalization = normalize_data_MEAN(train_transposed=train_df_cleaned_transposed_interval)
-    amplitude = 2
-    offset = 0
-elif settings.ACTUAL_SETUP.normalization == Normalization.ZERO_TO_ONE:
-    train_df_normalized, normalization = normalize_data_ZERO_TO_ONE(
-        train_transposed=train_df_cleaned_transposed_interval)
-    amplitude = 0.5
-    offset = 0.5
+    # Introduce necessary variables and predefine them as None
+    amplitude = None
+    offset = None
+    train_df_normalized = None
+    normalization = None
 
-# Check if anything went wrong
-if amplitude is None or offset is None or train_df_normalized is None or normalization is None:
-    raise ValueError("There is a value missing.")
+    # Choose normalization method
+    if settings.ACTUAL_SETUP.normalization == Normalization.NONE:
+        train_df_normalized = normalize_data_NONE()
+    elif settings.ACTUAL_SETUP.normalization == Normalization.MEAN:
+        train_df_normalized, normalization = normalize_data_MEAN(train_transposed=train_df_cleaned_transposed_interval)
+        amplitude = 2
+        offset = 0
+    elif settings.ACTUAL_SETUP.normalization == Normalization.ZERO_TO_ONE:
+        train_df_normalized, normalization = normalize_data_ZERO_TO_ONE(
+            train_transposed=train_df_cleaned_transposed_interval)
+        amplitude = 0.5
+        offset = 0.5
 
-# Save normalization values
-save_normalization_values(normalization_values=normalization)
+    # Check if anything went wrong
+    if amplitude is None or offset is None or train_df_normalized is None or normalization is None:
+        raise ValueError("There is a value missing.")
 
-# Save the plot for the normalized data
-save_normalization_plot(train_df_normalized)
+    # Save normalization values
+    save_normalization_values(normalization_values=normalization)
 
-# Add weather data if necessary
-train_df_normalized_wd = add_weather_data(train_df_normalized)
+    # Save the plot for the normalized data
+    save_normalization_plot(train_df_normalized)
 
-# Split dataset at the gaps in the dataset
-lst_split_df = split_dataset(df=train_df_normalized_wd)
+    # Add weather data if necessary
+    train_df_normalized_wd = add_weather_data(train_df_normalized)
 
-# Create windows
-create_and_save_data_windows(lst_split_dataset=lst_split_df, _amplitude=amplitude, _offset=offset)
+    # Split dataset at the gaps in the dataset
+    lst_split_df = split_dataset(df=train_df_normalized_wd)
 
-print("Preparation script executed successfully.")
+    # Create windows
+    create_and_save_data_windows(lst_split_dataset=lst_split_df, _amplitude=amplitude, _offset=offset)
+
+    print("Preparation script executed successfully.")
