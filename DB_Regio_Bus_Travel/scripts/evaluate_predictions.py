@@ -61,9 +61,7 @@ def find_data_for_prediction():
             '5459 - Hauzenberg, Busbahnhof'
             pass
 
-
     return y, y_hat
-
 
 
 def update_evaluation_file(value):

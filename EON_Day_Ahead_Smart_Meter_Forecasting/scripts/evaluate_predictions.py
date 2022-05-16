@@ -75,13 +75,13 @@ class EvaluatePredictions:
         # Store values in the csv file
         df = pd.read_csv(self.setup.FILE_MAPE_EVALUATION_DATA)
 
-        if self.setup.ACTUAL_SETUP.model_name in df["setup"].unique():
-            index = df.loc[df['setup'] == self.setup.ACTUAL_SETUP.model_name].index[0]
+        if self.setup.SETUP_KEY in df["setup"].unique():
+            index = df.loc[df['setup'] == self.setup.SETUP_KEY].index[0]
             df.at[index, 'value_hourly'] = value_hourly
             df.at[index, 'value_daily'] = value_daily
         else:
-            df.loc[len(df.index)] = [self.setup.ACTUAL_SETUP.model_name, value_hourly, value_daily]
-            df.loc[len(df.index)] = [self.setup.ACTUAL_SETUP.model_name, value_hourly, value_daily]
+            df.loc[len(df.index)] = [self.setup.SETUP_KEY, value_hourly, value_daily]
+            df.loc[len(df.index)] = [self.setup.SETUP_KEY, value_hourly, value_daily]
 
         df.to_csv(self.setup.FILE_MAPE_EVALUATION_DATA, index=False)
 

@@ -36,14 +36,14 @@ class EvaluateModel:
         # Store values in the csv file
         df = pd.read_csv(self.setup.FILE_EVALUATION_DATA)
 
-        if self.setup.ACTUAL_SETUP.model_name in df["setup"].unique():
-            index = df.loc[df['setup'] == self.setup.ACTUAL_SETUP.model_name].index[0]
+        if self.setup.SETUP_KEY in df["setup"].unique():
+            index = df.loc[df['setup'] == self.setup.SETUP_KEY].index[0]
             df.at[index, 'val'] = perf[kys[0]][0]
             df.at[index, 'val_loss'] = perf[kys[0]][1]
             df.at[index, 'test'] = perf[kys[1]][0]
             df.at[index, 'test_loss'] = perf[kys[1]][1]
         else:
-            df.loc[len(df.index)] = [self.setup.ACTUAL_SETUP.model_name,
+            df.loc[len(df.index)] = [self.setup.SETUP_KEY,
                                      perf[kys[0]][0],
                                      perf[kys[0]][1],
                                      perf[kys[1]][0],
