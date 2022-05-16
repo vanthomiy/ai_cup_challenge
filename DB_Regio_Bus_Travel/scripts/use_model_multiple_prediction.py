@@ -87,16 +87,16 @@ def renormalize_data(df):
     with open(settings.FILE_NORMALIZATION_DATA, 'rb') as file:
         _normalization = pickle.load(file)
 
-    ids = df.pop("pseudo_id")
+    ids = df.pop("Passengers")
 
     # load all counts
     # counts = pd.read_csv(settings.FILE_COUNTS_DATA)
 
-    df_un = (df * _normalization["std"] + _normalization["mean"])
+    ids_un = (ids * _normalization["std"] + _normalization["mean"])
 
 
-    df_un.insert(0, 'pseudo_id', ids)
-    return df_un
+    df["Passengers"] = ids_un.tolist()
+    return df
 
 
 def create_submission_format(dfs):
@@ -126,47 +126,14 @@ def create_submission_format(dfs):
     df = pd.DataFrame(preds)
     df.to_csv(settings.FILE_SUBMISSION_NORMED_DATA, index=False)
 
-    # df = renormalize_data(df)
-    # df.to_csv(settings.FILE_SUBMISSION_DATA, index=False)
+    df = renormalize_data(df)
+    df.to_csv(settings.FILE_SUBMISSION_DATA, index=False)
 
     return df
     # also save the un-normed values
 
     # now we have to map the time to the actual time...
 
-
-def create_submission_daily(df_hourly):
-    preds = []
-    ids = df_hourly.pop("pseudo_id")
-
-    for index, row in df_hourly.iterrows():
-        preds_for_id = {}
-        id_counts = {}
-
-        for column in df_hourly.columns:
-            date_obj = datetime.strptime(column, '%Y-%m-%d %H:%M:%S').date()
-
-            if date_obj in preds_for_id:
-                preds_for_id[date_obj] += row[column]
-                id_counts[date_obj] += 1
-            else:
-                preds_for_id[date_obj] = row[column]
-                id_counts[date_obj] = 1
-
-        #for key in preds_for_id:
-        #    preds_for_id[key] = preds_for_id[key] / id_counts[key]
-
-        preds.append(preds_for_id)
-
-    df = pd.DataFrame(preds)
-
-    # df["pseudo_id"] = ids
-    df.insert(0, 'pseudo_id', ids)
-
-    df.to_csv(settings.FILE_SUBMISSION_DATA_DAILY, index=False)
-    # also save the un-normed values
-
-    # now we have to map the time to the actual time...
 
 
 def load_weather_data(offset):
@@ -223,6 +190,7 @@ result = None
 iterations = int((7 * 24) / (settings.ACTUAL_SETUP.n_ahead / settings.ACTUAL_SETUP.data_interval.value))
 
 for i in range(0, iterations):
+    print("predict " + str(i))
     # create new window
     windows, dfs = windowing(dfs)
 
@@ -283,4 +251,3 @@ for i in range(0, iterations):
 
 sub_hourly = create_submission_format(dfs)
 
-create_submission_daily(sub_hourly)
