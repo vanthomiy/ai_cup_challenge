@@ -11,13 +11,13 @@ import tensorflow as tf
 
 from scripts.setup import Normalization
 
+
 class ModelMultiplePrediction:
     def __init__(self, setup):
         self.setup = setup
 
     def load_model(self):
         return tf.keras.models.load_model(self.setup.FILE_MODEL)
-
 
     def windowing(self, dfs, offset):
         wndw = {}
@@ -52,7 +52,6 @@ class ModelMultiplePrediction:
 
         return wndw, dfs
 
-
     def predict_values(self, mdl, wndw):
         results = []
         for pseudo_id in wndw:
@@ -72,14 +71,14 @@ class ModelMultiplePrediction:
                 predictions = mdl.predict(all_inputs)
 
                 for pred in predictions[0]:
-                    datetime_obj = datetime_obj + timedelta(hours=0, minutes=self.setup.ACTUAL_SETUP.data_interval.value * 30)
+                    datetime_obj = datetime_obj + timedelta(hours=0,
+                                                            minutes=self.setup.ACTUAL_SETUP.data_interval.value * 30)
                     datetime_string = str(datetime_obj)
                     result_for_id[datetime_string] = pred[0]
 
             results.append(result_for_id)
 
         return results
-
 
     def renormalize_data(self, df):
         _normalization = None
@@ -91,8 +90,10 @@ class ModelMultiplePrediction:
 
         # load all counts
         counts = pd.read_csv(self.setup.FILE_COUNTS_DATA)
-
-        df_un = (df * _normalization["std"] + _normalization["mean"])
+        if self.setup.ACTUAL_SETUP.normalization == Normalization.MEAN:
+            df_un = (df * _normalization["std"] + _normalization["mean"])
+        elif self.setup.ACTUAL_SETUP.normalization == Normalization.ZERO_TO_ONE:
+            df_un = (df * _normalization["max"] + _normalization["min"])
 
         for pseudo_id in self.setup.PSEUDO_IDS:
             try:
@@ -104,7 +105,6 @@ class ModelMultiplePrediction:
 
         df_un.insert(0, 'pseudo_id', ids)
         return df_un
-
 
     def create_submission_format(self, dfs):
         preds = []
@@ -130,7 +130,6 @@ class ModelMultiplePrediction:
 
         # now we have to map the time to the actual time...
 
-
     def create_submission_daily(self, df_hourly):
         preds = []
         ids = df_hourly.pop("pseudo_id")
@@ -149,7 +148,7 @@ class ModelMultiplePrediction:
                     preds_for_id[date_obj] = row[column]
                     id_counts[date_obj] = 1
 
-            #for key in preds_for_id:
+            # for key in preds_for_id:
             #    preds_for_id[key] = preds_for_id[key] / id_counts[key]
 
             preds.append(preds_for_id)
@@ -164,11 +163,11 @@ class ModelMultiplePrediction:
 
         # now we have to map the time to the actual time...
 
-
     def load_weather_data(self, offset):
         # startdate
         date = datetime(2017, 1, 1).date()
-        days = timedelta(days=38) - (offset + timedelta(days=int(self.setup.ACTUAL_SETUP.n_before / (24 * self.setup.ACTUAL_SETUP.data_interval.value /2))))
+        days = timedelta(days=38) - (offset + timedelta(
+            days=int(self.setup.ACTUAL_SETUP.n_before / (24 * self.setup.ACTUAL_SETUP.data_interval.value / 2))))
 
         # start_date = date + days
         start_date = datetime(2017, 1, 1).date()
@@ -211,8 +210,6 @@ class ModelMultiplePrediction:
 
         return df_wr
 
-
-
     def start(self):
 
         offset = timedelta(days=7)  # timedelta(days=0)
@@ -227,11 +224,12 @@ class ModelMultiplePrediction:
 
         result = None
         # calculate how often we have to predict
-        iterations = int((7 * 24) / (self.setup.ACTUAL_SETUP.n_ahead / (self.setup.ACTUAL_SETUP.data_interval.value / 2)))
+        iterations = int(
+            (7 * 24) / (self.setup.ACTUAL_SETUP.n_ahead / (self.setup.ACTUAL_SETUP.data_interval.value / 2)))
 
         for i in range(0, iterations):
             # create new window
-            windows, dfs = self.windowing(dfs,offset)
+            windows, dfs = self.windowing(dfs, offset)
 
             # predict values
             predictions = self.predict_values(model, windows)

@@ -77,7 +77,7 @@ def FILE_MODEL_TRAIN(name: str):
 
 
 FILE_EVALUATION_DATA = os.path.join(DIR_VALIDATION, f"evaluation.csv")
-FILE_MAPE_EVALUATION_DATA = os.path.join(DIR_VALIDATION, f"mape_evaluation.csv")
+FILE_MAPE_EVALUATION_DATA = os.path.join(DIR_VALIDATION, f"f1_evaluation.csv")
 
 FILE_EVALUATION_OVERVIEW = os.path.join(DIR_VALIDATION, f"evaluation.png")
 FILE_MAPE_EVALUATION_OVERVIEW = os.path.join(DIR_VALIDATION, f"mape_evaluation.png")

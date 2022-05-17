@@ -3,21 +3,20 @@ import os
 # region Paths
 import pandas as pd
 
-from scripts.setup import Setup
+from scripts.setup import Setup, Normalization
 
-ALL_SETUPS = {
+"""
+    "mae_whithout_weather": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mae"),
+    "mape_whithout_weather": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mape"),
 
-    #"mae_whithout_weather": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mae"),
-    #"mape_whithout_weather": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mape"),
+    "mae_whithout_weather_4days": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 4, model_key="mae"),
+    "mape_whithout_weather_4days": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 4, model_key="mape"),
 
-    #"mae_whithout_weather_4days": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 4, model_key="mae"),
-    #"mape_whithout_weather_4days": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 4, model_key="mape"),
+    "mae_whithout_weather_5days": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 5, model_key="mae"),
+    "mape_whithout_weather_5days": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 5, model_key="mape"),
 
-    #"mae_whithout_weather_5days": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 5, model_key="mae"),
-    #"mape_whithout_weather_5days": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 5, model_key="mape"),
-
-    #"mae_whithout_weather_half_prediction": Setup(pseudo_id_to_use=3, n_ahead=12, n_before=24 * 3, model_key="mae"),
-    #"mape_whithout_weather_half_prediction": Setup(pseudo_id_to_use=3, n_ahead=12, n_before=24 * 3, model_key="mape"),
+    "mae_whithout_weather_half_prediction": Setup(pseudo_id_to_use=3, n_ahead=12, n_before=24 * 3, model_key="mae"),
+    "mape_whithout_weather_half_prediction": Setup(pseudo_id_to_use=3, n_ahead=12, n_before=24 * 3, model_key="mape"),
 
     "mae_whit_temp": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mae",
                            weather_features=["tavg_mean"]),
@@ -35,13 +34,19 @@ ALL_SETUPS = {
     "mape_whith_mean_weather_more": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mape",
                                           weather_features=["tavg_mean", "prcp_mean", "snow_mean", "tsun_mean",
                                                             "pres_mean", "wpgt_mean", "wspd_mean"]),
+    "mape_whithout_weather_mape_units_12": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3,
+                                                 model_key="mape_units_12"),
+    "mape_whithout_weather_week_forward": Setup(pseudo_id_to_use=3, n_ahead=24 * 7, n_before=24 * 4,
+                                                model_key="mape"),"""
+ALL_SETUPS = {
+    "zero_one_mape_whithout_weather": Setup(normalization=Normalization.ZERO_TO_ONE, pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mape"),
 
 }
 
 
 class Settings:
     def __init__(self,
-                SETUP_KEY="mae_whithout_weather"):
+                 SETUP_KEY="mae_whithout_weather"):
         self.SETUP_KEY = SETUP_KEY
         self.PROJECT_ROOT = os.path.abspath(os.path.dirname(__file__))
         self.DIR_DATA = os.path.join(self.PROJECT_ROOT, 'data\\')

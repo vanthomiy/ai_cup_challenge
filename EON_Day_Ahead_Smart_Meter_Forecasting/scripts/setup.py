@@ -30,6 +30,7 @@ class ModelParameter:
                  optimizer=tf.optimizers.Adam(),
                  metrics=[tf.metrics.MeanAbsoluteError()],
                  stop_loss="mean_absolute_error",
+                 lstm_units=1,
                  max_epochs: int = 1000,
                  patience: int = 3,
                  algorithm: Algorithm = Algorithm.LSTM):
@@ -37,13 +38,21 @@ class ModelParameter:
         self.stop_loss = stop_loss
         self.optimizer = optimizer
         self.metrics = metrics
+        self.lstm_units = lstm_units
         self.max_epochs = max_epochs
         self.patience = patience
         self.algorithm = algorithm
 
 
 ALL_MODELS = {
-    "mape": ModelParameter(stop_loss="mean_absolute_percentage_error", metrics=[tf.metrics.MeanAbsolutePercentageError()]),
+    "mape": ModelParameter(stop_loss="mean_absolute_percentage_error",
+                           metrics=[tf.metrics.MeanAbsolutePercentageError()]),
+    "mape_units_12": ModelParameter(stop_loss="mean_absolute_percentage_error",
+                                 metrics=[tf.metrics.MeanAbsolutePercentageError()],
+                                 lstm_units=12),
+    "mape_optimizer_nadam": ModelParameter(stop_loss="mean_absolute_percentage_error",
+                                 metrics=[tf.metrics.MeanAbsolutePercentageError()],
+                                 optimizer=tf.optimizers.Nadam),
     "mae": ModelParameter(stop_loss="mean_absolute_error", metrics=[tf.metrics.MeanAbsoluteError()]),
 }
 

@@ -81,7 +81,6 @@ class EvaluatePredictions:
             df.at[index, 'value_daily'] = value_daily
         else:
             df.loc[len(df.index)] = [self.setup.SETUP_KEY, value_hourly, value_daily]
-            df.loc[len(df.index)] = [self.setup.SETUP_KEY, value_hourly, value_daily]
 
         df.to_csv(self.setup.FILE_MAPE_EVALUATION_DATA, index=False)
 

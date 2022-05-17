@@ -1,9 +1,11 @@
 """This is used to evaluate the final predictions"""
+import time
 from datetime import datetime
-
+import seaborn as sn
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+from sklearn.metrics import confusion_matrix
 
 import settings
 
@@ -35,7 +37,7 @@ def evaluate(y, yhat, perc=True):
     avg_score = 0
 
     for key in predicted_correct:
-        key_score = predicted_correct[key]["correct"] / predicted_correct[key]["overall"]
+        key_score = float(predicted_correct[key]["correct"]) / predicted_correct[key]["overall"]
         avg_score += key_score
 
     avg_score /= 4
@@ -51,14 +53,27 @@ def find_data_for_prediction():
     y = []
     y_hat = []
 
+    all_zones = df_r["EZone"].unique()
+
+    df_p = df_p[df_p["EZone"].isin(all_zones)]
+
+    df_p = df_p.head(1000)
+
+    # get the times to be used
+    all_times = df_p["date"].unique()
+    df_r = df_r[df_r["date"].isin(all_times)]
+
     for index, row in df_p.iterrows():
         values = df_r[(df_r["date"] == row["date"]) & (df_r["EZone"] == row["EZone"]) & (df_r["hour"] == row["hour"])]
+        if values.shape[0] <= 0:
+            continue
         try:
             row_true = values.iloc[0]
             y.append(row["Passengers"])
             y_hat.append(row_true["Passengers"])
-        except:
-            '5459 - Hauzenberg, Busbahnhof'
+        except Exception as ex:
+            # '5459 - Hauzenberg, Busbahnhof'
+            print(row["EZone"])
             pass
 
     return y, y_hat
@@ -91,26 +106,16 @@ def update_evaluation_file(value):
     plt.savefig(settings.FILE_MAPE_EVALUATION_OVERVIEW)
 
 
-def plot(df_p, df_r, counts=24):
-    plt.clf()
+def plot(df_p, df_r):
 
-    row = df_p.iloc[0]
-    a = row.T
-    data = a[::counts].tolist()[1:]
-    plt.plot(data, color='magenta', marker='o', mfc='pink')  # plot the data
-    plt.xticks(range(0, len(data) + 1, 1))  # set the tick frequency on x-axis
+    df_p = [int(value) if value <= 3 else 3 for value in df_p]
+    df_r = [int(value) if value <= 3 else 3 for value in df_r]
 
-    row = df_r.iloc[0]
-    a = row.T
-    data = a[::counts].tolist()[1:]
-    plt.plot(data, color='red', marker='x', mfc='pink')  # plot the data
-    plt.xticks(range(0, len(data) + 1, 1))  # set the tick frequency on x-axis
+    array = confusion_matrix(df_r, df_p, normalize="true")
 
-    plt.ylabel('data')  # set the label for y axis
-    plt.xlabel('index')  # set the label for x-axis
-    plt.title("Plotting a list")  # set the title of the graph
-    plt.show()  # display the graph
-    plt.savefig(settings.FILE_MAPE_EVALUATION_TIMESERIES)
+    DetaFrame_cm = pd.DataFrame(array)
+    sn.heatmap(DetaFrame_cm, annot=True)
+    plt.show()
 
 
 df_p, df_r = find_data_for_prediction()
@@ -120,3 +125,5 @@ macro_f1_score = evaluate(df_p, df_r)
 print(macro_f1_score)
 
 update_evaluation_file(macro_f1_score)
+
+plot(df_p, df_r)

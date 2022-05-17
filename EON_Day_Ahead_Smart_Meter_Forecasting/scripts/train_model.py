@@ -66,7 +66,7 @@ class TrainModel:
             act_model = tf.keras.Sequential([
                 # Shape [batch, time, features] => [batch, lstm_units].
                 # Adding more `lstm_units` just overfits more quickly.
-                tf.keras.layers.LSTM(32, return_sequences=False),
+                tf.keras.layers.LSTM(32*param.lstm_units, return_sequences=False),
                 # Shape => [batch, out_steps*features].
                 tf.keras.layers.Dense(self.setup.ACTUAL_SETUP.n_ahead * self.setup.ACTUAL_SETUP.num_features,
                                       kernel_initializer=tf.initializers.zeros()),
