@@ -27,13 +27,16 @@ def load_time_window_data():
             features = ["value"]
             features.extend(settings.ACTUAL_SETUP.features)
             features.extend(settings.ACTUAL_SETUP.weather_features)
-            df_id["pseudo_id"] = settings.BUS_STOPS.index(int(pseudo_id))
+            try:
+                df_id["pseudo_id"] = settings.BUS_STOPS.index((pseudo_id))
+            except Exception as ex:
+                pass
 
             # df is list of all values
             n = len(df_id)
             train_dfs.append(df_id[0:int(n * 0.6)])
-            val_dfs.append(df_id[int(n * 0.6):int(n * 0.8)])
-            test_dfs.append(df_id[int(n * 0.8):])
+            val_dfs.append(df_id[int(n * 0.6):-(7*24)])
+            test_dfs.append(df_id[-(7*24):])
 
     return {"train": train_dfs, "test": test_dfs, "val": val_dfs}
 

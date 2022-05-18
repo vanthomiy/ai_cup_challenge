@@ -22,6 +22,7 @@ TEST_TRAIN_VALID = ["train", "test", "val"]
 SETUP_KEY = "test"
 
 ALL_SETUPS = {
+    #"test": Setup(bus_stops_to_us=10, n_ahead=24, n_before=24 * 3, model_key="fast_lane"),
     "test": Setup(n_ahead=24, n_before=24 * 3, model_key="fast_lane"),
     "daily_mape": Setup(bus_stops_to_us=1, n_ahead=24, n_before=24 * 3, model_key="mape"),
     "daily_mape_weather": Setup(bus_stops_to_us=1, n_ahead=24, n_before=24 * 3, model_key="mape",

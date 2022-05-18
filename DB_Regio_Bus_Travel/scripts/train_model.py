@@ -102,8 +102,14 @@ def plot_history(hist):
     for key in hist.history:
         if not key.startswith("val"):
             plt.clf()
-            plt.plot(hist.history[key])
-            plt.plot(hist.history["val_" + str(key)])
+            try:
+                plt.plot(hist.history[key])
+            except:
+                pass
+            try:
+                plt.plot(hist.history["val_" + str(key)])
+            except:
+                pass
             plt.title('model ' + key)
             plt.ylabel(key)
             plt.xlabel('epoch')

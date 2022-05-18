@@ -94,8 +94,9 @@ def renormalize_data(df):
 
     ids_un = (ids * _normalization["std"] + _normalization["mean"])
 
+    ids_un = [int(value) if value <= 3 else 3 for value in ids_un]
 
-    df["Passengers"] = ids_un.tolist()
+    df["Passengers"] = ids_un # .tolist()
     return df
 
 
