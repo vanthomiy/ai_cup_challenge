@@ -114,8 +114,6 @@ def split_dataset(df: pd.DataFrame) -> list:
     for bus_stop in settings.BUS_STOPS:
         df_stop = df[df["zones"] == int(bus_stop)]
 
-
-
         if df_new is None:
             index = df.index[df['zones'] == bus_stop].tolist()
             df_new = pd.DataFrame(index=index)
@@ -126,11 +124,18 @@ def split_dataset(df: pd.DataFrame) -> list:
     split_by = int(24 * 7 * 3 / settings.ACTUAL_SETUP.data_interval.value)
     temp_lst_split_dataset = []
     amount_of_times = len(df_new.index)
+    actual_index = 0
+
     # Loop through every timespan and split the dataset at the given index
     for i in range(0, int(amount_of_times / split_by)):
         temp_lst_split_dataset.append(
             df_new.iloc[i * split_by: (i + 1) * split_by]
         )
+        actual_index = (i + 1) * split_by
+
+    temp = df_new.iloc[actual_index:]
+    if temp.size > 1:
+        temp_lst_split_dataset.append(temp)
     return temp_lst_split_dataset
 
 
@@ -168,7 +173,7 @@ def create_and_save_data_windows(lst_split_dataset: list, _amplitude: int, _offs
 
             # Add the existing data for the current row and every id to the temporary data dictionary
             for bus_stop in settings.BUS_STOPS:
-                dict_timestamp_data[bus_stop] = row[bus_stop]
+                dict_timestamp_data[bus_stop] = row[(bus_stop)]
 
             for weather_data in settings.ACTUAL_SETUP.weather_features:
                 dict_timestamp_data[weather_data] = row[weather_data]

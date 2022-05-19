@@ -26,7 +26,10 @@ def windowing(dfs):
         if len(dfs) <= time:
             df = pd.read_csv(settings.FILE_TIME_WINDOW_X(time))
             n = int(offset.days * 24 * settings.ACTUAL_SETUP.data_interval.value)
-            df1 = df.iloc[:-n]
+            if n != 0:
+                df1 = df.iloc[:-n]
+            else:
+                df1 = df
             dfs.append(df1)
         for pseudo_id_int in settings.BUS_STOPS:
             pseudo_id = str(pseudo_id_int)
@@ -106,8 +109,7 @@ def create_submission_format(dfs):
         predicted_values = df.tail(7 * 24 * settings.ACTUAL_SETUP.data_interval.value)
         for day in range(0, 7):
             predicted_values_days = predicted_values[day*24:(day+1) * 24]
-            for id in range(0, settings.ACTUAL_SETUP.bus_stops_to_us):
-                bus_id = str(settings.BUS_STOPS[id])
+            for bus_id in settings.BUS_STOPS_SORTED:
                 if bus_id not in predicted_values_days.columns or predicted_values_days[bus_id].isnull().values.any():
                     continue
 
@@ -124,6 +126,26 @@ def create_submission_format(dfs):
                     }
                     preds.append(prediction)
 
+            """for id in range(0, settings.ACTUAL_SETUP.bus_stops_to_us):
+                if id >= len(settings.BUS_STOPS):
+                    continue
+                bus_id = str(settings.BUS_STOPS[id])
+                if bus_id not in predicted_values_days.columns or predicted_values_days[bus_id].isnull().values.any():
+                    continue
+
+                for index, row in predicted_values_days.iterrows():
+                    datetime_obj = datetime.strptime(row["time"], '%Y-%m-%d %H:%M:%S')
+
+                    name = f"{str(bus_id)} - {settings.BUS_STOPS_DICT[str(bus_id)]}"
+
+                    prediction = {
+                        "date": datetime_obj.date(),
+                        "EZone": name,
+                        "hour": datetime_obj.hour,
+                        "Passengers": row[bus_id]
+                    }
+                    preds.append(prediction)
+"""
     df = pd.DataFrame(preds)
     df.to_csv(settings.FILE_SUBMISSION_NORMED_DATA, index=False)
 
@@ -176,7 +198,7 @@ def load_weather_data(offset):
 
 # create windows and predictions for each time
 
-offset = timedelta(days=7)  # timedelta(days=0)
+offset = timedelta(days=0)  # timedelta(days=0)
 
 results = []
 
