@@ -1,4 +1,3 @@
-import pickle
 
 import numpy as np
 import pandas as pd
@@ -14,7 +13,7 @@ def load_time_window_data():
 
     for time in range(0, settings.ACTUAL_SETUP.time_windows_to_use):
         df = pd.read_csv(settings.FILE_TIME_WINDOW_X(time))
-        for pseudo_id in settings.BUS_STOPS:
+        for pseudo_id in settings.BUS_STOPS_SORTED:
             pseudo_id = str(pseudo_id)
             if df[pseudo_id].isnull().values.any():
                 continue
@@ -28,15 +27,15 @@ def load_time_window_data():
             features.extend(settings.ACTUAL_SETUP.features)
             features.extend(settings.ACTUAL_SETUP.weather_features)
             try:
-                df_id["pseudo_id"] = settings.BUS_STOPS.index((pseudo_id))
+                df_id["pseudo_id"] = settings.BUS_STOPS_SORTED.index((pseudo_id))
             except Exception as ex:
                 pass
 
             # df is list of all values
             n = len(df_id)
-            train_dfs.append(df_id[0:int(n * 0.6)])
-            val_dfs.append(df_id[int(n * 0.6):-(7*24)])
-            test_dfs.append(df_id[-(7*24):])
+            train_dfs.append(df_id[0:int(7*24*1)])
+            val_dfs.append(df_id[int(7*24*1):(7*24*2)])
+            test_dfs.append(df_id[(7*24*2):])
 
     return {"train": train_dfs, "test": test_dfs, "val": val_dfs}
 
@@ -64,20 +63,23 @@ def make_dataset(data_list):
     total_window_size = settings.ACTUAL_SETUP.n_before + settings.ACTUAL_SETUP.n_ahead
 
     for data in data_list:
-        data = np.array(data, dtype=np.float32)
-        ds_temp = tf.keras.utils.timeseries_dataset_from_array(
-            data=data,
-            targets=None,
-            sequence_length=total_window_size,
-            sequence_stride=1,
-            shuffle=True,
-            batch_size=32)
+        try:
+            data = np.array(data, dtype=np.float32)
+            ds_temp = tf.keras.utils.timeseries_dataset_from_array(
+                data=data,
+                targets=None,
+                sequence_length=total_window_size,
+                sequence_stride=1,
+                shuffle=True,
+                batch_size=32)
 
-        ds_temp = ds_temp.map(split_window)
-        if ds is None:
-            ds = ds_temp
-        else:
-            ds = ds.concatenate(ds_temp)
+            ds_temp = ds_temp.map(split_window)
+            if ds is None:
+                ds = ds_temp
+            else:
+                ds = ds.concatenate(ds_temp)
+        except Exception:
+            pass
 
     # We need to create a list out of it to store it with pkl
     # result = ds.unbatch()

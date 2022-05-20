@@ -111,7 +111,7 @@ def split_dataset(df: pd.DataFrame) -> list:
     df_new = None
 
     # split dataset by busstop
-    for bus_stop in settings.BUS_STOPS:
+    for bus_stop in settings.BUS_STOPS_SORTED:
         df_stop = df[df["zones"] == int(bus_stop)]
 
         if df_new is None:
@@ -172,7 +172,7 @@ def create_and_save_data_windows(lst_split_dataset: list, _amplitude: int, _offs
                                    'year cos': _amplitude * np.cos(timestamp_s * (np.pi / seconds_per_year)) + _offset}
 
             # Add the existing data for the current row and every id to the temporary data dictionary
-            for bus_stop in settings.BUS_STOPS:
+            for bus_stop in settings.BUS_STOPS_SORTED:
                 dict_timestamp_data[bus_stop] = row[(bus_stop)]
 
             for weather_data in settings.ACTUAL_SETUP.weather_features:

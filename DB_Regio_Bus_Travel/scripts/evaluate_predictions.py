@@ -1,6 +1,4 @@
 """This is used to evaluate the final predictions"""
-import time
-from datetime import datetime
 import seaborn as sn
 import numpy as np
 import pandas as pd

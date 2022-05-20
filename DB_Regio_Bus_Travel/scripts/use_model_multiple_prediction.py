@@ -30,10 +30,13 @@ def windowing(dfs):
                 df1 = df.iloc[:-n]
             else:
                 df1 = df
+
+            df1 = df1.dropna(axis=1)
+
             dfs.append(df1)
-        for pseudo_id_int in settings.BUS_STOPS:
+        for pseudo_id_int in settings.BUS_STOPS_SORTED:
             pseudo_id = str(pseudo_id_int)
-            if dfs[time][pseudo_id].isnull().values.any():
+            if pseudo_id not in dfs[time] or dfs[time][pseudo_id].isnull().values.any():
                 continue
 
             if pseudo_id not in wndw:
@@ -48,7 +51,7 @@ def windowing(dfs):
             features = ["value"]
             features.extend(settings.ACTUAL_SETUP.features)
             features.extend(settings.ACTUAL_SETUP.weather_features)
-            id = settings.BUS_STOPS.index(pseudo_id_int)
+            id = settings.BUS_STOPS_SORTED.index(pseudo_id_int)
             df_id["pseudo_id"] = id
 
             wndw[pseudo_id].append(df_id.tail(settings.ACTUAL_SETUP.n_before))
@@ -99,7 +102,7 @@ def renormalize_data(df):
 
     ids_un = [int(value) if value <= 3 else 3 for value in ids_un]
 
-    df["Passengers"] = ids_un # .tolist()
+    df["Passengers"] = ids_un  # .tolist()
     return df
 
 
@@ -108,7 +111,7 @@ def create_submission_format(dfs):
     for df in dfs:
         predicted_values = df.tail(7 * 24 * settings.ACTUAL_SETUP.data_interval.value)
         for day in range(0, 7):
-            predicted_values_days = predicted_values[day*24:(day+1) * 24]
+            predicted_values_days = predicted_values[day * 24:(day + 1) * 24]
             for bus_id in settings.BUS_STOPS_SORTED:
                 if bus_id not in predicted_values_days.columns or predicted_values_days[bus_id].isnull().values.any():
                     continue
@@ -126,26 +129,6 @@ def create_submission_format(dfs):
                     }
                     preds.append(prediction)
 
-            """for id in range(0, settings.ACTUAL_SETUP.bus_stops_to_us):
-                if id >= len(settings.BUS_STOPS):
-                    continue
-                bus_id = str(settings.BUS_STOPS[id])
-                if bus_id not in predicted_values_days.columns or predicted_values_days[bus_id].isnull().values.any():
-                    continue
-
-                for index, row in predicted_values_days.iterrows():
-                    datetime_obj = datetime.strptime(row["time"], '%Y-%m-%d %H:%M:%S')
-
-                    name = f"{str(bus_id)} - {settings.BUS_STOPS_DICT[str(bus_id)]}"
-
-                    prediction = {
-                        "date": datetime_obj.date(),
-                        "EZone": name,
-                        "hour": datetime_obj.hour,
-                        "Passengers": row[bus_id]
-                    }
-                    preds.append(prediction)
-"""
     df = pd.DataFrame(preds)
     df.to_csv(settings.FILE_SUBMISSION_NORMED_DATA, index=False)
 
@@ -156,7 +139,6 @@ def create_submission_format(dfs):
     # also save the un-normed values
 
     # now we have to map the time to the actual time...
-
 
 
 def load_weather_data(offset):
@@ -198,7 +180,7 @@ def load_weather_data(offset):
 
 # create windows and predictions for each time
 
-offset = timedelta(days=0)  # timedelta(days=0)
+offset = timedelta(days=7)  # timedelta(days=0)
 
 results = []
 
@@ -239,7 +221,7 @@ for i in range(0, iterations):
     for time in predicted_times:
         list_row = {}
         for i in range(0, len(predicted_times[time])):
-            list_row[settings.BUS_STOPS[i]] = predicted_times[time][i]
+            list_row[settings.BUS_STOPS_SORTED[i]] = float(predicted_times[time][i])
 
         list_row["time"] = time
         # Calculate seconds per day for the sin and cos functions with 24 hours/day * 60 minutes/hour * 60 seconds/minute
@@ -266,6 +248,7 @@ for i in range(0, iterations):
         #    list_row[weather_features] = row[weather_features]
 
         dfs[actual_window].loc[len(dfs[actual_window])] = list_row
+        # dfs[actual_window] = dfs[actual_window].append(list_row, ignore_index=True)
 
         actual_count += 1
         if actual_count >= counts:
@@ -273,4 +256,3 @@ for i in range(0, iterations):
             actual_count = 0
 
 sub_hourly = create_submission_format(dfs)
-
