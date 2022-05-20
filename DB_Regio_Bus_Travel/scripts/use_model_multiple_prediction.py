@@ -63,24 +63,27 @@ def predict_values(mdl, wndw):
     results = []
     for pseudo_id in wndw:
         result_for_id = {"pseudo_id": pseudo_id}
-        for time in wndw[pseudo_id]:
-            # we have to get the actual date of the id...
-            # start time
-            actual_time_string = time["time"].tolist()[-1]
-            datetime_obj = datetime.strptime(actual_time_string, '%Y-%m-%d %H:%M:%S')
-            datetime_obj = datetime_obj  # - offset
-            time.pop("time")
+        try:
+            for time in wndw[pseudo_id]:
+                # we have to get the actual date of the id...
+                # start time
+                actual_time_string = time["time"].tolist()[-1]
+                datetime_obj = datetime.strptime(actual_time_string, '%Y-%m-%d %H:%M:%S')
+                datetime_obj = datetime_obj  # - offset
+                time.pop("time")
 
-            arr_data = np.array(time)
+                arr_data = np.array(time)
 
-            all_inputs = np.array([arr_data])
+                all_inputs = np.array([arr_data])
 
-            predictions = mdl.predict(all_inputs)
+                predictions = mdl.predict(all_inputs)
 
-            for pred in predictions[0]:
-                datetime_obj = datetime_obj + timedelta(hours=0, minutes=settings.ACTUAL_SETUP.data_interval.value * 60)
-                datetime_string = str(datetime_obj)
-                result_for_id[datetime_string] = pred[0]
+                for pred in predictions[0]:
+                    datetime_obj = datetime_obj + timedelta(hours=0, minutes=settings.ACTUAL_SETUP.data_interval.value * 60)
+                    datetime_string = str(datetime_obj)
+                    result_for_id[datetime_string] = pred[0]
+        except:
+            print("not enough time")
 
         results.append(result_for_id)
 

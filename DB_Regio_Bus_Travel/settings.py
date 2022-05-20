@@ -23,7 +23,8 @@ SETUP_KEY = "test"
 
 ALL_SETUPS = {
     # "test": Setup(bus_stops_to_us=10, n_ahead=24, n_before=24 * 3, model_key="fast_lane"),
-    "test": Setup(bus_stops_to_us=5, n_ahead=24, n_before=24 * 3, model_key="fast_lane"),
+    "test": Setup(bus_stops_to_us=2, n_ahead=24, n_before=24 * 3, model_key="fast_lane"),
+    "test_epoch_100": Setup(bus_stops_to_us=2, n_ahead=24, n_before=24 * 3, model_key="epoch_100"),
     "daily_mape": Setup(bus_stops_to_us=1, n_ahead=24, n_before=24 * 3, model_key="mape"),
     "daily_mape_weather": Setup(bus_stops_to_us=1, n_ahead=24, n_before=24 * 3, model_key="mape",
                                 weather_features=["tavg_mean", "snow_mean", "wspd_mean", "tsun_mean"]),

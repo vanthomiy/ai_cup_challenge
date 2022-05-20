@@ -46,6 +46,7 @@ ALL_MODELS = {
     "default_conv": ModelParameter(algorithm=Algorithm.CONV),
     "mape": ModelParameter(metrics=[tf.metrics.MeanAbsolutePercentageError()]),
     "fast_lane": ModelParameter(max_epochs=3),
+    "epoch_100": ModelParameter(max_epochs=100),
 }
 
 

@@ -39,12 +39,11 @@ from scripts.setup import Setup, Normalization
     "mape_whithout_weather_week_forward": Setup(pseudo_id_to_use=3, n_ahead=24 * 7, n_before=24 * 4,
                                                 model_key="mape"),
     "zero_one_mape_whithout_weather": Setup(normalization=Normalization.ZERO_TO_ONE, pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mape"),
-"""
-ALL_SETUPS = {
     "mape_whit_temp_4days": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 4, model_key="mape",
                                          weather_features=["tavg_mean"]),
-    "mape_whithout_weather_4days": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 4, model_key="mape"),
-
+"""
+ALL_SETUPS = {
+    "mape_whithout_weather_4days": Setup(n_ahead=24, n_before=24 * 4, model_key="mape"),
 }
 
 
