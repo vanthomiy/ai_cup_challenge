@@ -7,10 +7,9 @@ from scripts.setup import Setup, Normalization
 
 
 ALL_SETUPS = {
-    "mape_whithout_weather_1days_1": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 1, model_key="mape"),
-    "mape_whithout_weather_1days_3": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 1, model_key="mape"),
-    "mape_whithout_weather_1days_10": Setup(pseudo_id_to_use=10, n_ahead=24, n_before=24 * 1, model_key="mape"),
-    "mape_whithout_weather_1days_30": Setup(pseudo_id_to_use=30, n_ahead=24, n_before=24 * 1, model_key="mape"),
+
+    "mape_whithout_weather_1days_60": Setup(n_ahead=24, n_before=24 * 1, model_key="mape"),
+    "mape_whithout_weather_2days_60": Setup(n_ahead=24, n_before=24 * 2, model_key="mape"),
 
     "mape_whithout_weather_1days_12": Setup(pseudo_id_to_use=12, n_ahead=24, n_before=24 * 1, model_key="mape"),
 
