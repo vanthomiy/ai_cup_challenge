@@ -27,10 +27,6 @@ class TrainModel:
         # Convert target Y to one hot encoded Y for Neural Network
         Y = pd.get_dummies(Y)
 
-        # For Keras, convert dataframe to array values (Inbuilt requirement of Keras)
-        X = X.values
-        Y = Y.values
-
         return X, Y
 
     def transformer_encoder(self, inputs, head_size, num_heads, ff_dim, dropout=0):
@@ -69,7 +65,8 @@ class TrainModel:
 
             # Create model here
             act_model = Sequential()
-            act_model.add(Dense(128, input_dim=X.shape[1], activation='relu'))  # Rectified Linear Unit Activation Function
+            act_model.add(
+                Dense(128, input_dim=X.shape[1], activation='relu'))  # Rectified Linear Unit Activation Function
             act_model.add(Dense(128, activation='relu'))
             act_model.add(Dense(8, activation='softmax'))  # Softmax for multi-class classification
             # Compile model here
@@ -93,16 +90,44 @@ class TrainModel:
 
         callbacks = self.get_callbacks()
 
-        X, Y = self.unison_shuffled_copies(X, Y)
+        # we should take the same amount of classification data.
+        # so we take n data for each at first
+        val_split = 0.05
+        count_per_class = 300
+        dfs = []
+        dfs_labels = []
 
-        """model.compile(
-            loss="categorical_crossentropy",
-            optimizer=tf.keras.optimizers.Adam(learning_rate=1e-4),
-            metrics=["sparse_categorical_accuracy"],
-        )"""
-        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3), loss='categorical_crossentropy', metrics=['accuracy'])
+        for i in range(0, 7):
+            x1 = X.iloc[i * count_per_class:(i + 1) * count_per_class]
+            y1 = Y.iloc[i * count_per_class:(i + 1) * count_per_class]
+            # x1, y1 = self.unison_shuffled_copies(x1, y1)
+            dfs.append(x1)
+            dfs_labels.append(y1)
 
-        training = model.fit(X, Y, epochs=params.max_epochs, batch_size=16, validation_split=0.75, callbacks=callbacks)
+        X = None
+        Y = None
+
+        for i in range(0, len(dfs)):
+            x = dfs[i][:int(count_per_class * (1 - val_split))]
+            y = dfs_labels[i][:int(count_per_class * (1 - val_split))]
+            if X is None:
+                X = x
+                Y = y
+            else:
+                X = X.append(x, ignore_index=True)
+                Y = Y.append(y, ignore_index=True)
+
+        for i in range(0, len(dfs)):
+            x = dfs[i][int(count_per_class * (1 - val_split)):]
+            y = dfs_labels[i][int(count_per_class * (1 - val_split)):]
+            X = X.append(x, ignore_index=True)
+            Y = Y.append(y, ignore_index=True)
+
+        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3), loss='categorical_crossentropy',
+                      metrics=['accuracy'])
+
+        training = model.fit(X, Y, epochs=params.max_epochs, batch_size=16, validation_split=val_split,
+                             callbacks=callbacks)
 
         accr = model.evaluate(X, Y)
         print('Test set\n  Loss: {:0.3f}\n  Accuracy: {:0.3f}'.format(accr[0], accr[1]))

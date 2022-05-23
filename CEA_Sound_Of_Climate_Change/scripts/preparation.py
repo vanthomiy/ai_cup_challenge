@@ -86,6 +86,7 @@ class Preparation:
         df = (df - _normalization["min"]) / _normalization["max"]
         test_df = (test_df - _normalization["mean"]) / _normalization["std"]
         return df, _normalization, test_df
+
     def save_normalization_values(self, normalization_values: dict):
         """
         Save the normalization values as pickle file.
@@ -121,14 +122,13 @@ class Preparation:
         :param df_t: The actual, already transposed, df
         :return: The intervall adjusted df
         """
-        interval = self.setup.ACTUAL_SETUP.data_interval.value
-        df_t_i = None
+        count = len(df_t.columns)
+
         if self.setup.ACTUAL_SETUP.data_interval != Timespan.ALL:
             return df_t
         else:
-            return df_t
-
-        return df_t_i
+            take = 0.1
+            return df_t.iloc[:, int(count * take):-int(count * take)]
 
     def save_normalization_plot(self, df_n):
         df_melt = df_n.melt(var_name='Column', value_name='Normalized')
@@ -144,6 +144,7 @@ class Preparation:
 
         # Adjust the time intervall of the data [half-hourly, hourly and daily]
         train_df = self.adjust_time_interval(train_df)
+        test_df = self.adjust_time_interval(test_df)
 
         # Introduce necessary variables and predefine them as None
         normalization = None
