@@ -17,9 +17,8 @@ start_time = time.time()
 
 for key in settings.ALL_SETUPS:
     try:
-        setup = settings.Settings(key)
+        setup = settings.Settings("mae_whithout_weather") #key)
         Preparation(setup).start()
-        preparation = Preparation(setup)
         Windowing(setup).start()
         TrainModel(setup).start()
         EvaluateModel(setup).start()

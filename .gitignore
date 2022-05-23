@@ -139,3 +139,12 @@ dmypy.json
 *.csv
 *.csv
 *.pkl
+*.index
+*.index
+*.data-00000-of-00001
+*.index
+*.data-00000-of-00001
+EON_Day_Ahead_Smart_Meter_Forecasting/model/mape_whithout_weather_model/variables/variables.index
+EON_Day_Ahead_Smart_Meter_Forecasting/model/mape_whithout_weather_model/variables/variables.data-00000-of-00001
+EON_Day_Ahead_Smart_Meter_Forecasting/model/mape_whithout_weather_4days_model/variables/variables.index
+EON_Day_Ahead_Smart_Meter_Forecasting/model/mape_whithout_weather_4days_model/variables/variables.data-00000-of-00001

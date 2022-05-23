@@ -5,45 +5,43 @@ import pandas as pd
 
 from scripts.setup import Setup, Normalization
 
-"""
-    "mae_whithout_weather": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mae"),
-    "mape_whithout_weather": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mape"),
 
-    "mae_whithout_weather_4days": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 4, model_key="mae"),
-    "mape_whithout_weather_4days": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 4, model_key="mape"),
+ALL_SETUPS = {
+    "mape_whithout_weather_1days_1": Setup(pseudo_id_to_use=1, n_ahead=24, n_before=24 * 1, model_key="mape"),
+    "mape_whithout_weather_1days_3": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 1, model_key="mape"),
+    "mape_whithout_weather_1days_10": Setup(pseudo_id_to_use=10, n_ahead=24, n_before=24 * 1, model_key="mape"),
+    "mape_whithout_weather_1days_30": Setup(pseudo_id_to_use=30, n_ahead=24, n_before=24 * 1, model_key="mape"),
 
-    "mae_whithout_weather_5days": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 5, model_key="mae"),
-    "mape_whithout_weather_5days": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 5, model_key="mape"),
+    "mape_whithout_weather_1days_12": Setup(pseudo_id_to_use=12, n_ahead=24, n_before=24 * 1, model_key="mape"),
 
-    "mae_whithout_weather_half_prediction": Setup(pseudo_id_to_use=3, n_ahead=12, n_before=24 * 3, model_key="mae"),
-    "mape_whithout_weather_half_prediction": Setup(pseudo_id_to_use=3, n_ahead=12, n_before=24 * 3, model_key="mape"),
+    "mape_whithout_weather_2days_12": Setup(pseudo_id_to_use=12, n_ahead=24, n_before=24 * 2, model_key="mape"),
 
-    "mae_whit_temp": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mae",
-                           weather_features=["tavg_mean"]),
-    "mape_whit_temp": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mape",
+    "mape_whithout_weather_3days_12": Setup(pseudo_id_to_use=12, n_ahead=24, n_before=24 * 3, model_key="mape"),
+
+    "mape_whithout_weather_4days_12": Setup(pseudo_id_to_use=12, n_ahead=24, n_before=24 * 4, model_key="mape"),
+
+    "mape_whithout_weather_5days_12": Setup(pseudo_id_to_use=12, n_ahead=24, n_before=24 * 5, model_key="mape"),
+
+    "mape_whithout_weather_half_prediction_12": Setup(pseudo_id_to_use=12, n_ahead=12, n_before=24 * 3, model_key="mape"),
+
+
+    "mape_whit_temp_12": Setup(pseudo_id_to_use=12, n_ahead=24, n_before=24 * 3, model_key="mape",
                             weather_features=["tavg_mean"]),
+    "mape_whit_temp": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mape",
+                                weather_features=["tavg_mean"]),
 
-    "mae_whith_mean_weather": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mae",
-                                    weather_features=["tavg_mean", "prcp_mean", "snow_mean", "tsun_mean"]),
-    "mape_whith_mean_weather": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mape",
+    "mape_whith_mean_weather_12": Setup(pseudo_id_to_use=12, n_ahead=24, n_before=24 * 3, model_key="mape",
                                      weather_features=["tavg_mean", "prcp_mean", "snow_mean", "tsun_mean"]),
 
-    "mae_whith_mean_weather_more": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mae",
-                                         weather_features=["tavg_mean", "prcp_mean", "snow_mean", "tsun_mean",
-                                                           "pres_mean", "wpgt_mean", "wspd_mean"]),
-    "mape_whith_mean_weather_more": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mape",
+    "mape_whith_mean_weather_more_12": Setup(pseudo_id_to_use=12, n_ahead=24, n_before=24 * 3, model_key="mape",
                                           weather_features=["tavg_mean", "prcp_mean", "snow_mean", "tsun_mean",
                                                             "pres_mean", "wpgt_mean", "wspd_mean"]),
-    "mape_whithout_weather_mape_units_12": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3,
+    "mape_whithout_weather_mape_units_12_12": Setup(pseudo_id_to_use=12, n_ahead=24, n_before=24 * 3,
                                                  model_key="mape_units_12"),
-    "mape_whithout_weather_week_forward": Setup(pseudo_id_to_use=3, n_ahead=24 * 7, n_before=24 * 4,
+    "mape_whithout_weather_week_forward_12": Setup(pseudo_id_to_use=12, n_ahead=24 * 7, n_before=24 * 4,
                                                 model_key="mape"),
-    "zero_one_mape_whithout_weather": Setup(normalization=Normalization.ZERO_TO_ONE, pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mape"),
-    "mape_whit_temp_4days": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 4, model_key="mape",
+    "mape_whit_temp_4days_12": Setup(pseudo_id_to_use=12, n_ahead=24, n_before=24 * 4, model_key="mape",
                                          weather_features=["tavg_mean"]),
-"""
-ALL_SETUPS = {
-    "mape_whithout_weather_4days": Setup(n_ahead=24, n_before=24 * 4, model_key="mape"),
 }
 
 
