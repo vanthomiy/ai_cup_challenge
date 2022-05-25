@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
+from scripts.setup import ID_HANDLING
+
 
 class Windowing:
     def __init__(self, setup):
@@ -25,7 +27,9 @@ class Windowing:
                 features = ["value"]
                 features.extend(self.setup.ACTUAL_SETUP.features)
                 features.extend(self.setup.ACTUAL_SETUP.weather_features)
-                df_id["pseudo_id"] = self.setup.PSEUDO_IDS.index(pseudo_id)
+
+                if self.setup.ACTUAL_SETUP.id_handling == ID_HANDLING.MULTIPLE:
+                    df_id["pseudo_id"] = self.setup.PSEUDO_IDS.index(pseudo_id)
 
                 # df is list of all values
                 n = len(df_id)
@@ -80,10 +84,7 @@ class Windowing:
 
         return ds
 
-    def start(self):
-        # load the data
-        data_dict = self.load_time_window_data()
-
+    def create_window(self, data_dict, id=-1):
         # windowed dict
         windowed_data = {}
 
@@ -92,4 +93,19 @@ class Windowing:
             data = self.make_dataset(data_dict[value])
 
             tf.data.experimental.save(
-                data, self.setup.FILE_WINDOWED_DATA(value))
+                data, self.setup.FILE_WINDOWED_DATA(value, (str(id) if id > -1 else "all")))
+
+    def start(self):
+        # load the data
+        data_dict = self.load_time_window_data()
+
+        if self.setup.ACTUAL_SETUP.id_handling == ID_HANDLING.SINGLE:
+            for id in range(0, self.setup.ACTUAL_SETUP.pseudo_id_to_use):
+                id_df = {}
+                for key in self.setup.TEST_TRAIN_VALID:
+                    id_df[key] = data_dict[key][id::self.setup.ACTUAL_SETUP.pseudo_id_to_use]
+                self.create_window(id_df, id)
+        else:
+            self.create_window(data_dict)
+
+

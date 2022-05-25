@@ -5,21 +5,23 @@ import pandas as pd
 import tensorflow as tf
 from matplotlib import pyplot as plt
 
+from scripts.setup import ID_HANDLING
+
 
 class EvaluateModel:
     def __init__(self, setup):
         self.setup = setup
 
-    def load_model(self):
-        return tf.keras.models.load_model(self.setup.FILE_MODEL)
+    def load_model(self, name):
+        return tf.keras.models.load_model(self.setup.FILE_MODEL(name))
 
-    def load_sliding_window(self):
+    def load_sliding_window(self, id=-1):
         # load the pickle file with the windowed data
         mv_ds = {}
 
         for value in self.setup.TEST_TRAIN_VALID:
             ds = tf.data.experimental.load(
-                self.setup.FILE_WINDOWED_DATA(value))
+                self.setup.FILE_WINDOWED_DATA(value, (str(id) if id > -1 else "all")))
             mv_ds[value] = ds
 
         return mv_ds
@@ -106,20 +108,27 @@ class EvaluateModel:
         plt.xlabel(f"Time steps: {self.setup.ACTUAL_SETUP.data_interval}")
         plt.savefig(self.setup.FILE_EVALUATION_TIMESERIES)
 
+    def evaluate(self, keys, id=-1):
+
+        # load the model
+        model = self.load_model(str(id) if id > -1 else "all")
+
+        # load the data
+        data = self.load_sliding_window(id)
+
+        # evaluate the model
+        return self.evaluate_model(model, data, keys), data, model
+
     def start(self):
         keys = ["val", "test"]
 
-        # load the model
-        model = self.load_model()
+        if self.setup.ACTUAL_SETUP.id_handling == ID_HANDLING.SINGLE:
+            for id in range(0, self.setup.ACTUAL_SETUP.pseudo_id_to_use):
+                self.evaluate(keys, id)
+        else:
+            performance, data, model = self.evaluate(keys)
+            # store the values in a file and also update the overall picture
+            self.update_evaluation_file(performance, keys)
 
-        # load the data
-        data = self.load_sliding_window()
-
-        # evaluate the model
-        performance = self.evaluate_model(model, data, keys)
-
-        # store the values in a file and also update the overall picture
-        self.update_evaluation_file(performance, keys)
-
-        # create predictions and store them as pictures
-        self.plot(data=data["test"], model=model)
+            # create predictions and store them as pictures
+            self.plot(data=data["test"], model=model)

@@ -1,5 +1,7 @@
 import pickle
 from datetime import datetime
+
+import librosa
 import numpy as np
 from matplotlib import pyplot as plt
 import seaborn as sns
@@ -129,6 +131,7 @@ class Preparation:
         else:
             take = 0.1
             return df_t.iloc[:, int(count * take):-int(count * take)]
+
 
     def save_normalization_plot(self, df_n):
         df_melt = df_n.melt(var_name='Column', value_name='Normalized')

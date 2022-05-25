@@ -3,10 +3,13 @@ import os
 # region Paths
 import pandas as pd
 
-from scripts.setup import Setup, Normalization
-
+from scripts.setup import Setup, Normalization, ID_HANDLING
 
 ALL_SETUPS = {
+    "fast_test_multiple": Setup(pseudo_id_to_use=3, id_handling=ID_HANDLING.MULTIPLE, n_ahead=24, n_before=24 * 1, model_key="fast"),
+    "fast_test_all": Setup(pseudo_id_to_use=3, id_handling=ID_HANDLING.ALL, n_ahead=24, n_before=24 * 1, model_key="fast"),
+    "fast_test_single": Setup(pseudo_id_to_use=3, id_handling=ID_HANDLING.SINGLE, n_ahead=24, n_before=24 * 1, model_key="fast"),
+    "mape_single": Setup(id_handling=ID_HANDLING.SINGLE, n_ahead=24, n_before=24 * 3, model_key="mape"),
 
     "mape_whithout_weather_1days_60": Setup(n_ahead=24, n_before=24 * 1, model_key="mape"),
     "mape_whithout_weather_2days_60": Setup(n_ahead=24, n_before=24 * 2, model_key="mape"),
@@ -93,16 +96,16 @@ class Settings:
         self.FILE_SUBMISSION_DATA = os.path.join(self.DIR_SUBMISSION, f"{SETUP_KEY}submission_hourly.csv")
         self.FILE_SUBMISSION_DATA_DAILY = os.path.join(self.DIR_SUBMISSION, f"{SETUP_KEY}submission_daily.csv")
 
-        # Filepath to the model
-        self.FILE_MODEL = os.path.join(self.DIR_MODEL, f"{SETUP_KEY}_model")
-
     # Filepath to the window by index and actual setup
     def FILE_TIME_WINDOW_X(self, index: int):
         return os.path.join(self.DIR_PREPROCESSING, f"{self.SETUP_KEY}dataset{index}.csv")
 
     # Filepath to the windowed data values
-    def FILE_WINDOWED_DATA(self, index: str):
-        return os.path.join(self.DIR_SLIDING_WINDOW, f"{self.SETUP_KEY}windowed_data_{index}.pkl")
+    def FILE_WINDOWED_DATA(self, index: str, id: str = "all"):
+        return os.path.join(self.DIR_SLIDING_WINDOW, f"\{self.SETUP_KEY}\windowed_data_{index+id}.pkl")
 
     def FILE_MODEL_TRAIN(self, name: str):
         return os.path.join(self.DIR_MODEL, f"{self.SETUP_KEY + name}.png")
+
+    def FILE_MODEL(self, name: str):
+        return os.path.join(self.DIR_MODEL, f"{self.SETUP_KEY + name}_model")

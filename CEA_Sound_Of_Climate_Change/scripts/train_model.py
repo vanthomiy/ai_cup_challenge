@@ -92,7 +92,7 @@ class TrainModel:
 
         # we should take the same amount of classification data.
         # so we take n data for each at first
-        val_split = 0.05
+        val_split = 0.2
         count_per_class = 300
         dfs = []
         dfs_labels = []

@@ -4,20 +4,20 @@ import tensorflow as tf
 from matplotlib import pyplot as plt
 
 import settings as set
-from scripts.setup import ModelParameter, Algorithm
+from scripts.setup import ModelParameter, Algorithm, ID_HANDLING
 
 
 class TrainModel:
     def __init__(self, setup):
         self.setup = setup
 
-    def load_sliding_window(self):
+    def load_sliding_window(self, id=-1):
         # load the pickle file with the windowed data
         mv_ds = {}
 
         for value in self.setup.TEST_TRAIN_VALID:
             ds = tf.data.experimental.load(
-                self.setup.FILE_WINDOWED_DATA(value))
+                self.setup.FILE_WINDOWED_DATA(value, (str(id) if id > -1 else "all")))
             mv_ds[value] = ds
 
         return mv_ds
@@ -94,8 +94,8 @@ class TrainModel:
                             callbacks=[early_stopping])
         return history
 
-    def save_model(self, model):
-        model.save(self.setup.FILE_MODEL)
+    def save_model(self, model, name):
+        model.save(self.setup.FILE_MODEL(name))
 
     def plot_history(self, hist):
         # summarize history for loss
@@ -110,13 +110,7 @@ class TrainModel:
                 plt.legend(['train', 'test'], loc='upper left')
                 plt.savefig(self.setup.FILE_MODEL_TRAIN(key))  # save as png
 
-    def start(self):
-        # load the multi window
-        multi_window = self.load_sliding_window()
-
-        # pre load the model setup
-        params = self.setup.ACTUAL_SETUP.model_parameters
-
+    def run_model(self, params, multi_window, id=-1):
         # create the model
         model = self.create_model(params)
 
@@ -124,7 +118,22 @@ class TrainModel:
         history = self.compile_and_fit(model, multi_window, params)
 
         # save the model to use it later
-        self.save_model(model)
+        self.save_model(model, (str(id) if id > -1 else "all"))
 
         # plot the model train history
         self.plot_history(history)
+
+    def start(self):
+        # load the multi window
+
+        # pre load the model setup
+        params = self.setup.ACTUAL_SETUP.model_parameters
+
+        if self.setup.ACTUAL_SETUP.id_handling == ID_HANDLING.SINGLE:
+            for id in range(0, self.setup.ACTUAL_SETUP.pseudo_id_to_use):
+                multi_window = self.load_sliding_window(id)
+                self.run_model(params, multi_window, id)
+        else:
+            multi_window = self.load_sliding_window()
+            self.run_model(params, multi_window)
+

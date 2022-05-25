@@ -2,6 +2,12 @@ from enum import Enum
 import tensorflow as tf
 
 
+class ID_HANDLING(Enum):
+    SINGLE = 1
+    MULTIPLE = 2
+    ALL = 3
+
+
 class Algorithm(Enum):
     LINEAR = 1
     DENSE = 2
@@ -45,14 +51,17 @@ class ModelParameter:
 
 
 ALL_MODELS = {
+    "fast": ModelParameter(max_epochs=3,
+                            stop_loss="mean_absolute_percentage_error",
+                           metrics=[tf.metrics.MeanAbsolutePercentageError()]),
     "mape": ModelParameter(stop_loss="mean_absolute_percentage_error",
                            metrics=[tf.metrics.MeanAbsolutePercentageError()]),
     "mape_units_12": ModelParameter(stop_loss="mean_absolute_percentage_error",
-                                 metrics=[tf.metrics.MeanAbsolutePercentageError()],
-                                 lstm_units=12),
+                                    metrics=[tf.metrics.MeanAbsolutePercentageError()],
+                                    lstm_units=12),
     "mape_optimizer_nadam": ModelParameter(stop_loss="mean_absolute_percentage_error",
-                                 metrics=[tf.metrics.MeanAbsolutePercentageError()],
-                                 optimizer=tf.optimizers.Nadam),
+                                           metrics=[tf.metrics.MeanAbsolutePercentageError()],
+                                           optimizer=tf.optimizers.Nadam),
     "mae": ModelParameter(stop_loss="mean_absolute_error", metrics=[tf.metrics.MeanAbsoluteError()]),
 }
 
@@ -69,7 +78,10 @@ class Setup:
                  # weather_features = ["tavg_mean","tavg_std","tmin_mean","tmin_std","tmax_mean","tmax_std","prcp_mean","prcp_std","snow_mean","snow_std","wdir_mean","wdir_std","wspd_mean","wspd_std","wpgt_mean","wpgt_std","pres_mean","pres_std","tsun_mean","tsun_std"],
                  weather_features=[],
                  # num_features=6,
+                 id_handling: ID_HANDLING = ID_HANDLING.MULTIPLE,
                  data_interval: Timespan = Timespan.HOURLY):
+        self.id_handling = id_handling
+
         self.normalization = normalization
         """What normalization should be used? \"none\", \"mean\", \"01\""""
         self.n_ahead = n_ahead
@@ -86,7 +98,7 @@ class Setup:
         """The actual columns / features for the model"""
         self.features = features
         """The name of the features"""
-        self.num_features = len(features) + 2 + len(weather_features)
+        self.num_features = len(features) + 2 + len(weather_features) - (1 if id_handling != ID_HANDLING.MULTIPLE else 0)
         """The count of the features"""
         self.time_windows_to_use = time_windows_to_use
         """How much of the 21 data windows should be used"""

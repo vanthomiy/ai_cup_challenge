@@ -9,17 +9,17 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from scripts.setup import Normalization
+from scripts.setup import Normalization, ID_HANDLING
 
 
 class ModelMultiplePrediction:
     def __init__(self, setup):
         self.setup = setup
 
-    def load_model(self):
-        return tf.keras.models.load_model(self.setup.FILE_MODEL)
+    def load_model(self, name):
+        return tf.keras.models.load_model(self.setup.FILE_MODEL(name))
 
-    def windowing(self, dfs, offset):
+    def windowing(self, dfs, offset, id):
         wndw = {}
         if dfs is None:
             dfs = []
@@ -33,7 +33,8 @@ class ModelMultiplePrediction:
                 else:
                     df1 = df
                 dfs.append(df1)
-            for pseudo_id in self.setup.PSEUDO_IDS:
+            if self.setup.ACTUAL_SETUP.id_handling == ID_HANDLING.SINGLE:
+                pseudo_id = self.setup.PSEUDO_IDS[id]
                 if pseudo_id not in wndw:
                     wndw[pseudo_id] = []
 
@@ -46,9 +47,27 @@ class ModelMultiplePrediction:
                 features = ["value"]
                 features.extend(self.setup.ACTUAL_SETUP.features)
                 features.extend(self.setup.ACTUAL_SETUP.weather_features)
-                df_id["pseudo_id"] = self.setup.PSEUDO_IDS.index(pseudo_id)
 
                 wndw[pseudo_id].append(df_id.tail(self.setup.ACTUAL_SETUP.n_before))
+            else:
+                for pseudo_id in self.setup.PSEUDO_IDS:
+                    if pseudo_id not in wndw:
+                        wndw[pseudo_id] = []
+
+                    features = [pseudo_id]
+                    features.extend(self.setup.ACTUAL_SETUP.features)
+                    features.extend(self.setup.ACTUAL_SETUP.weather_features)
+                    features.extend(["time"])
+                    df_id = dfs[time][features]
+                    df_id.rename(columns={pseudo_id: 'value'}, inplace=True)
+                    features = ["value"]
+                    features.extend(self.setup.ACTUAL_SETUP.features)
+                    features.extend(self.setup.ACTUAL_SETUP.weather_features)
+
+                    if self.setup.ACTUAL_SETUP.id_handling != ID_HANDLING.ALL:
+                        df_id["pseudo_id"] = self.setup.PSEUDO_IDS.index(pseudo_id)
+
+                    wndw[pseudo_id].append(df_id.tail(self.setup.ACTUAL_SETUP.n_before))
 
         return wndw, dfs
 
@@ -130,6 +149,30 @@ class ModelMultiplePrediction:
 
         # now we have to map the time to the actual time...
 
+    def create_submission_format_from_single(self, dfs):
+        preds = []
+        for id_index in range(0, len(dfs)):
+            preds_for_id = {}
+            for df in dfs[id_index]:
+                predicted_values = df.tail(7 * 24 * int(self.setup.ACTUAL_SETUP.data_interval.value / 2))
+                preds_for_id["pseudo_id"] = self.setup.PSEUDO_IDS[id_index]
+                for index, row in predicted_values.iterrows():
+                    preds_for_id[row["time"]] = row[self.setup.PSEUDO_IDS[id_index]]
+
+            preds.append(preds_for_id)
+
+        df = pd.DataFrame(preds)
+        df.to_csv(self.setup.FILE_SUBMISSION_NORMED_DATA, index=False)
+
+        df = self.renormalize_data(df)
+        df.to_csv(self.setup.FILE_SUBMISSION_DATA, index=False)
+
+        return df
+        # also save the un-normed values
+
+        # now we have to map the time to the actual time...
+
+
     def create_submission_daily(self, df_hourly):
         preds = []
         ids = df_hourly.pop("pseudo_id")
@@ -210,13 +253,10 @@ class ModelMultiplePrediction:
 
         return df_wr
 
-    def start(self):
-
-        offset = timedelta(days=7)  # timedelta(days=0)
-
+    def create_predictions(self, offset, a_id=-1):
         results = []
 
-        model = self.load_model()
+        model = self.load_model(str(a_id) if a_id > -1 else "all")
         if len(self.setup.ACTUAL_SETUP.weather_features) > 0:
             wather_data = self.load_weather_data(offset)
 
@@ -229,7 +269,7 @@ class ModelMultiplePrediction:
 
         for i in range(0, iterations):
             # create new window
-            windows, dfs = self.windowing(dfs, offset)
+            windows, dfs = self.windowing(dfs, offset, a_id)
 
             # predict values
             predictions = self.predict_values(model, windows)
@@ -252,8 +292,11 @@ class ModelMultiplePrediction:
             actual_count = 0
             for time in predicted_times:
                 list_row = {}
-                for i in range(0, len(predicted_times[time])):
-                    list_row[self.setup.PSEUDO_IDS[i]] = predicted_times[time][i]
+                if a_id == -1:
+                    for i in range(0, len(predicted_times[time])):
+                        list_row[self.setup.PSEUDO_IDS[i]] = predicted_times[time][i]
+                else:
+                    list_row[self.setup.PSEUDO_IDS[a_id]] = predicted_times[time][0]
 
                 list_row["time"] = time
                 # Calculate seconds per day for the sin and cos functions with 24 hours/day * 60 minutes/hour * 60 seconds/minute
@@ -290,6 +333,21 @@ class ModelMultiplePrediction:
                     actual_window += 1
                     actual_count = 0
 
-        sub_hourly = self.create_submission_format(dfs)
+        return dfs
+
+    def start(self):
+
+        offset = timedelta(days=0)  # timedelta(days=0)
+        dfs = None
+
+        if self.setup.ACTUAL_SETUP.id_handling == ID_HANDLING.SINGLE:
+            list_df = []
+            for id in range(0, self.setup.ACTUAL_SETUP.pseudo_id_to_use):
+                dfs_for_id = self.create_predictions(offset, id)
+                list_df.append((dfs_for_id))
+            sub_hourly = self.create_submission_format_from_single(list_df)
+        else:
+            dfs = self.create_predictions(offset)
+            sub_hourly = self.create_submission_format(dfs)
 
         self.create_submission_daily(sub_hourly)
