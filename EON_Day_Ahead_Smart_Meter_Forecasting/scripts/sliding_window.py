@@ -33,11 +33,15 @@ class Windowing:
 
                 # df is list of all values
                 n = len(df_id)
-                train_dfs.append(df_id[0:int(n * 0.6)])
+                # Now we change that to now test data
+                """train_dfs.append(df_id[0:int(n * 0.6)])
                 # val_dfs.append(df_id[int(n * 0.6):int(n * 0.8)])
                 val_dfs.append(df_id[int(n * 0.6):-7 * 24])
                 # test_dfs.append(df_id[int(n * 0.8):])
-                test_dfs.append(df_id[-7 * 24:])
+                test_dfs.append(df_id[-7 * 24:])"""
+                train_dfs.append(df_id[0:int(n * 0.8)])
+                val_dfs.append(df_id[int(n * 0.8):])
+                test_dfs.append(df_id[int(n * 0.8):])
 
         return {"train": train_dfs, "test": test_dfs, "val": val_dfs}
 
