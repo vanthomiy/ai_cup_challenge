@@ -3,7 +3,6 @@ import pickle
 import tensorflow as tf
 from matplotlib import pyplot as plt
 
-import settings as set
 from scripts.setup import ModelParameter, Algorithm, ID_HANDLING
 
 

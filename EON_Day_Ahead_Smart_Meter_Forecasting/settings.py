@@ -27,12 +27,10 @@ ALL_SETUPS = {
     "mape_whithout_weather_half_prediction_12": Setup(pseudo_id_to_use=12, n_ahead=12, n_before=24 * 3, model_key="mape"),
 
 
-    "mape_whit_temp_12": Setup(pseudo_id_to_use=12, n_ahead=24, n_before=24 * 3, model_key="mape",
+    "mape_whit_temp_60": Setup(pseudo_id_to_use=60, n_ahead=24, n_before=24 * 3, model_key="mape",
                             weather_features=["tavg_mean"]),
-    "mape_whit_temp": Setup(pseudo_id_to_use=3, n_ahead=24, n_before=24 * 3, model_key="mape",
-                                weather_features=["tavg_mean"]),
 
-    "mape_whith_mean_weather_12": Setup(pseudo_id_to_use=12, n_ahead=24, n_before=24 * 3, model_key="mape",
+    "mape_whith_mean_weather_60": Setup(pseudo_id_to_use=60, n_ahead=24, n_before=24 * 3, model_key="mape",
                                      weather_features=["tavg_mean", "prcp_mean", "snow_mean", "tsun_mean"]),
 
     "mape_whith_mean_weather_more_12": Setup(pseudo_id_to_use=12, n_ahead=24, n_before=24 * 3, model_key="mape",
