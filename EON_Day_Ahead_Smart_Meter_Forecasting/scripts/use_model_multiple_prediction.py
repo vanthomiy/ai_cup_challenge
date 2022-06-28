@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
-from scripts.setup import Normalization, ID_HANDLING
+from scripts.setup import Normalization, ID_HANDLING, Timespan
 
 
 class ModelMultiplePrediction:
@@ -27,7 +27,7 @@ class ModelMultiplePrediction:
         for time in range(0, self.setup.ACTUAL_SETUP.time_windows_to_use):
             if len(dfs) <= time:
                 df = pd.read_csv(self.setup.FILE_TIME_WINDOW_X(time))
-                n = int(offset.days * 24 * (self.setup.ACTUAL_SETUP.data_interval.value / 2))
+                n = int((offset.days * 24) / (self.setup.ACTUAL_SETUP.data_interval.value / 2))
                 if n != 0:
                     df1 = df.iloc[:-n]
                 else:
@@ -139,9 +139,16 @@ class ModelMultiplePrediction:
             preds.append(preds_for_id)
 
         df = pd.DataFrame(preds)
+
         df.to_csv(self.setup.FILE_SUBMISSION_NORMED_DATA, index=False)
 
         df = self.renormalize_data(df)
+
+        if self.setup.ACTUAL_SETUP.data_interval == Timespan.DAILY:
+            columns = df.columns.values.tolist()[1:]
+            for column in columns:
+                df[column] = df[column] / 2
+
         df.to_csv(self.setup.FILE_SUBMISSION_DATA, index=False)
 
         return df
@@ -171,7 +178,6 @@ class ModelMultiplePrediction:
         # also save the un-normed values
 
         # now we have to map the time to the actual time...
-
 
     def create_submission_daily(self, df_hourly):
         preds = []
@@ -264,8 +270,11 @@ class ModelMultiplePrediction:
 
         result = None
         # calculate how often we have to predict
+        # iterations = int(
+        #    (7 * 24) / (self.setup.ACTUAL_SETUP.n_ahead / (self.setup.ACTUAL_SETUP.data_interval.value / 2)))
+
         iterations = int(
-            (7 * 24) / (self.setup.ACTUAL_SETUP.n_ahead / (self.setup.ACTUAL_SETUP.data_interval.value / 2)))
+            ((7 * 24) / self.setup.ACTUAL_SETUP.n_ahead) / (self.setup.ACTUAL_SETUP.data_interval.value / 2))
 
         for i in range(0, iterations):
             # create new window
@@ -288,7 +297,8 @@ class ModelMultiplePrediction:
                     predicted_times[time].append(id[time])
 
             actual_window = 0
-            counts = (self.setup.ACTUAL_SETUP.n_ahead / (self.setup.ACTUAL_SETUP.data_interval.value / 2))
+            # counts = (self.setup.ACTUAL_SETUP.n_ahead / (self.setup.ACTUAL_SETUP.data_interval.value / 2))
+            counts = (self.setup.ACTUAL_SETUP.n_ahead)  # / (self.setup.ACTUAL_SETUP.data_interval.value / 2))
             actual_count = 0
             for time in predicted_times:
                 list_row = {}
@@ -325,7 +335,7 @@ class ModelMultiplePrediction:
                         print(ex)
                     for weather_features in self.setup.ACTUAL_SETUP.weather_features:
                         list_row[weather_features] = row[weather_features]
-
+                print(actual_window)
                 dfs[actual_window].loc[len(dfs[actual_window])] = list_row
 
                 actual_count += 1
@@ -350,4 +360,5 @@ class ModelMultiplePrediction:
             dfs = self.create_predictions(offset)
             sub_hourly = self.create_submission_format(dfs)
 
-        self.create_submission_daily(sub_hourly)
+        if self.setup.ACTUAL_SETUP.data_interval != Timespan.DAILY:
+            self.create_submission_daily(sub_hourly)

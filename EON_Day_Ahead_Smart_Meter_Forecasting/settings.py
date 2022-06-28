@@ -3,9 +3,22 @@ import os
 # region Paths
 import pandas as pd
 
-from scripts.setup import Setup, Normalization, ID_HANDLING
+from scripts.setup import Setup, Normalization, ID_HANDLING, Timespan
 
 ALL_SETUPS = {
+    "hourly_mae_10_week": Setup(data_interval=Timespan.HOURLY, pseudo_id_to_use=10, n_ahead=24*7, n_before=24*7*2,
+                               model_key="mae"),
+    "hourly_mae_60_week": Setup(data_interval=Timespan.HOURLY, pseudo_id_to_use=60, n_ahead=24*7, n_before=24*7*2,
+                                   model_key="mae"),
+    "daily_mae_10_week": Setup(data_interval=Timespan.DAILY, pseudo_id_to_use=10, n_ahead=7, n_before=2*7, model_key="mae"),
+    "daily_mae_60_week": Setup(data_interval=Timespan.DAILY, pseudo_id_to_use=60, n_ahead=7, n_before=2 * 7,
+                               model_key="mae"),
+
+    "daily_temp_60": Setup(data_interval=Timespan.DAILY, pseudo_id_to_use=60, n_ahead=1, n_before=3, model_key="mape",
+                                weather_features=["tavg_mean"]),
+    "daily_fast_test_all": Setup(pseudo_id_to_use=3, id_handling=ID_HANDLING.ALL, data_interval=Timespan.DAILY, n_ahead=1, n_before=1,
+                           model_key="fast"),
+
     "fast_test_multiple": Setup(pseudo_id_to_use=3, id_handling=ID_HANDLING.MULTIPLE, n_ahead=24, n_before=24 * 1, model_key="fast"),
     "fast_test_all": Setup(pseudo_id_to_use=3, id_handling=ID_HANDLING.ALL, n_ahead=24, n_before=24 * 1, model_key="fast"),
     "fast_test_single": Setup(pseudo_id_to_use=3, id_handling=ID_HANDLING.SINGLE, n_ahead=24, n_before=24 * 1, model_key="fast"),

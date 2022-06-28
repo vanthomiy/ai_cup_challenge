@@ -10,10 +10,10 @@ from scripts.sliding_window import Windowing
 from scripts.train_model import TrainModel
 from scripts.use_model_multiple_prediction import ModelMultiplePrediction
 
-setup = settings.Settings("mape_whith_mean_weather_60")
+setup = settings.Settings("hourly_mae_60_week")
 Preparation(setup).start()
 Windowing(setup).start()
 TrainModel(setup).start()
-EvaluateModel(setup).start()
+# EvaluateModel(setup).start()
 ModelMultiplePrediction(setup).start()
 EvaluatePredictions(setup).start()

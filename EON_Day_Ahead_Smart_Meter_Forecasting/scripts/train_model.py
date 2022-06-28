@@ -102,7 +102,10 @@ class TrainModel:
             if not key.startswith("val"):
                 plt.clf()
                 plt.plot(hist.history[key])
-                plt.plot(hist.history["val_" + str(key)])
+                try:
+                    plt.plot(hist.history["val_" + str(key)])
+                except:
+                    pass
                 plt.title('model ' + key)
                 plt.ylabel(key)
                 plt.xlabel('epoch')

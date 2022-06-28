@@ -1,9 +1,11 @@
 """This is used to evaluate the final predictions"""
-from datetime import datetime
+from datetime import datetime, time
 
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
+
+from scripts.setup import Timespan
 
 
 class EvaluatePredictions:
@@ -29,8 +31,31 @@ class EvaluatePredictions:
         """Takes the predicted data and searches and arranges the real data"""
         df_p = pd.read_csv(self.setup.FILE_SUBMISSION_DATA)
         df_r = pd.read_csv(self.setup.FILE_TRAIN_DATA)
-        headers = df_p.columns.values.tolist()
+        # we have to adjust the headers first and then combine it to the daily values
+        if self.setup.ACTUAL_SETUP.data_interval == Timespan.DAILY:
+            # fake all headers here
+            all_headers = []
+            headers = df_p.columns.values.tolist()
+            all_headers.append(headers[0])
+            for header in headers[1:]:
+                new_header = header
+                for actual_time in range(0, 23):
+
+                    time_string = str(actual_time)
+                    if len(time_string) == 1:
+                        time_string = "0" + time_string
+                    new_header = header.replace("00:00:00", f"{time_string}:00:00")
+                    all_headers.append(new_header)
+            headers = all_headers
+        else:
+            headers = df_p.columns.values.tolist()
+
         df_rc = df_r[[*headers]]
+
+        if self.setup.ACTUAL_SETUP.data_interval == Timespan.DAILY:
+            # create daily from hourly
+            df_rc = self.create_submission_daily(df_rc.copy())
+
         ids = df_p["pseudo_id"].tolist()
         df_rcr = df_rc[df_rc['pseudo_id'].isin(ids)]
         return df_p, df_rcr
@@ -121,17 +146,25 @@ class EvaluatePredictions:
 
     def start(self):
         df_p, df_r = self.find_data_for_prediction()
-        df_p_daily, df_r_daily = self.find_data_for_prediction_daily(df_r)
 
-        mape = self.evaluate(df_p, df_r)
-        mape_daily = self.evaluate(df_p_daily, df_r_daily)
+        if self.setup.ACTUAL_SETUP.data_interval == Timespan.HOURLY:
+            mape = self.evaluate(df_p, df_r)
+            df_p_daily, df_r_daily = self.find_data_for_prediction_daily(df_r)
+            mape_daily = self.evaluate(df_p_daily, df_r_daily)
+            print(mape)
+            print(mape_daily)
+            print((mape + mape_daily) / 2)
+            self.update_evaluation_file(mape, mape_daily)
+            self.plot(df_p_daily, df_r_daily, 1)
+        else:
+            #df_r_d = self.create_submission_daily(df_r.copy())
+            columns = df_p.columns.values.tolist()[1:]
+            #for column in columns:
+            #    df_p[column] = df_p[column] / 2
 
-        print(mape)
-        print(mape_daily)
-
-        print((mape + mape_daily) / 2)
-
-        self.update_evaluation_file(mape, mape_daily)
+            mape = self.evaluate(df_r, df_p)
+            print(mape)
+            self.update_evaluation_file(mape, mape)
 
         self.plot(df_p, df_r)
-        self.plot(df_p_daily, df_r_daily, 1)
+
