@@ -66,13 +66,14 @@ class Preparation:
         assert train_sum_row1 == cleaned_sum_row1, "There is something wrong in clean_train_dataset"
         assert train_sum_row3 == cleaned_sum_row3, "There is something wrong in clean_train_dataset"
 
-    def normalize_data_NONE(self):
+    def normalize_data_NONE(self, df: pd.DataFrame):
         """
         Normalization algorithm which is to be defined.
 
         :return: tbd.
         """
-        raise NotImplemented("Not Implemented yet.")
+        return df
+
 
     def normalize_data_MEAN(self, train_transposed: pd.DataFrame) -> (pd.DataFrame, dict):
         """
@@ -298,7 +299,9 @@ class Preparation:
 
         # Choose normalization method
         if self.setup.ACTUAL_SETUP.normalization == Normalization.NONE:
-            train_df_normalized = self.normalize_data_NONE()
+            train_df_normalized = self.normalize_data_NONE(train_df_cleaned_transposed_interval)
+            amplitude = 1
+            offset = 0
         elif self.setup.ACTUAL_SETUP.normalization == Normalization.MEAN:
             train_df_normalized, normalization = self.normalize_data_MEAN(
                 train_transposed=train_df_cleaned_transposed_interval)
@@ -311,7 +314,7 @@ class Preparation:
             offset = 0.5
 
         # Check if anything went wrong
-        if amplitude is None or offset is None or train_df_normalized is None or normalization is None:
+        if train_df_normalized is None or ((normalization is None or amplitude is None or offset is None) and self.setup.ACTUAL_SETUP.normalization != Normalization.NONE):
             raise ValueError("There is a value missing.")
 
         # Save normalization values

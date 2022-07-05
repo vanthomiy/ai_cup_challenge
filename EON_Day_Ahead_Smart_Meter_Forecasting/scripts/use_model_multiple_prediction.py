@@ -131,7 +131,7 @@ class ModelMultiplePrediction:
         for id in range(0, self.setup.ACTUAL_SETUP.pseudo_id_to_use):
             preds_for_id = {}
             for df in dfs:
-                predicted_values = df.tail(7 * 24 * int(self.setup.ACTUAL_SETUP.data_interval.value / 2))
+                predicted_values = df.tail(int((7 * 24) / int(self.setup.ACTUAL_SETUP.data_interval.value / 2)))
                 preds_for_id["pseudo_id"] = self.setup.PSEUDO_IDS[id]
                 for index, row in predicted_values.iterrows():
                     preds_for_id[row["time"]] = row[self.setup.PSEUDO_IDS[id]]
@@ -347,7 +347,7 @@ class ModelMultiplePrediction:
 
     def start(self):
 
-        offset = timedelta(days=0)  # timedelta(days=0)
+        offset = timedelta(days=7)  # timedelta(days=0)
         dfs = None
 
         if self.setup.ACTUAL_SETUP.id_handling == ID_HANDLING.SINGLE:
