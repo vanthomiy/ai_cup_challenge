@@ -18,6 +18,8 @@ ALL_SETUPS = {
                                model_key="mae"),
     "hourly_mae_60_week": Setup(data_interval=Timespan.HOURLY, pseudo_id_to_use=60, n_ahead=24*7, n_before=24*7*2,
                                    model_key="mae"),
+    "hourly_mae_60_week_fast": Setup(data_interval=Timespan.HOURLY, pseudo_id_to_use=2, n_ahead=24*7, n_before=24*7*2,
+                                       model_key="mae"),
     "daily_mae_10_week": Setup(data_interval=Timespan.DAILY, pseudo_id_to_use=10, n_ahead=7, n_before=2*7, model_key="mae"),
     "daily_mae_60_week": Setup(data_interval=Timespan.DAILY, pseudo_id_to_use=60, n_ahead=7, n_before=2 * 7,
                                model_key="mae"),
